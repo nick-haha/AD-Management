@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AD 管理控制台</title>
+  <link rel="stylesheet" href="/assets/design-system.css?v=11" />
+  <link rel="stylesheet" href="/assets/tokens.css?v=2" />
+  <link rel="stylesheet" href="/assets/admin-page.css?v=9" />
+</head>
+<body data-page="admin">
+
+  <!-- Login Page -->
+  <div class="login-page" id="loginPage">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-mark">AD</div>
+        <div class="login-title">管理员登录</div>
+        <div class="login-subtitle">AD 管理控制台</div>
+      </div>
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <input name="username" class="form-input" placeholder="用户名" autocapitalize="off" required />
+        </div>
+        <div class="form-group">
+          <input name="password" type="password" class="form-input" placeholder="密码" required />
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">登录</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Layout -->
+  <div class="admin-layout auth-only hidden" id="adminApp">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand" id="sidebarBrand" title="返回首页">
+        <div class="sidebar-brand-icon">AD</div>
+        <div class="sidebar-brand-text">管理控制台</div>
+        <button type="button" id="sidebarToggle" class="sidebar-toggle" title="折叠/展开侧边栏" aria-label="折叠/展开侧边栏">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <button class="sidebar-item active" data-tab="overview">
+          <span class="sidebar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg></span> 账号操作
+        </button>
+        <button class="sidebar-item" data-tab="create">
+          <span class="sidebar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> 新建账号
+        </button>
+        <button class="sidebar-item" data-tab="offboard">
+          <span class="sidebar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 21v-5h6v5"/><path d="M15 12h.01"/></svg></span> 离职处理
+        </button>
+        <button class="sidebar-item" data-tab="logs">
+          <span class="sidebar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></span> 审计日志
+        </button>
+        <button class="sidebar-item" data-tab="tasks">
+          <span class="sidebar-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M19 3l3 3"/></svg></span> 定时任务
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/"><span>←</span> 普通入口</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-top">
+        <h1>AD 用户生命周期管理</h1>
+        <div class="admin-top-right">
+          <div id="connStatus" class="conn-status hidden">
+            <span class="conn-dot" id="connDot"></span>
+            <span id="connLabel">检测中…</span>
+          </div>
+          <div class="theme-switch" id="themeToggle" title="切换主题">
+            <button class="theme-btn" data-theme="light" title="浅色模式">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </button>
+            <button class="theme-btn" data-theme="dark" title="深色模式">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <button class="theme-btn" data-theme="auto" title="跟随系统">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </button>
+          </div>
+          <div class="avatar-wrap">
+            <div class="avatar" id="adminAvatar">A</div>
+            <div class="dropdown" id="adminDropdown">
+              <div class="dropdown-header">
+                <div class="dropdown-username" id="dropdownName">admin</div>
+                <div class="dropdown-role" id="adminRoleBadge" style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">角色加载中</div>
+              </div>
+              <button class="dropdown-item" data-action="settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> 域控配置</button>
+              <button class="dropdown-item" data-action="feishuSettings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/></svg> 飞书登录配置</button>
+              <button class="dropdown-item" data-action="changePassword"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/></svg> 修改密码</button>
+              <button class="dropdown-item" data-action="adminMgmt" style="display:none;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> 管理员管理</button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item danger" data-action="logout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 21v-5h6v5"/><path d="M15 12h.01"/></svg> 退出登录</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Setup Wizard -->
+      <div id="setupWizard" class="wizard-overlay">
+        <div class="wizard-box">
+          <div class="wizard-header">
+            <div class="wizard-logo">AD</div>
+            <h2 class="wizard-title">首次使用：配置 Active Directory 连接</h2>
+            <p class="wizard-sub">连接你的域控后即可开始管理</p>
+          </div>
+          <form id="wizardForm" class="wizard-body">
+            <div class="section-title full">基础连接 <span class="req-badge">必填</span></div>
+            <div class="form-grid form-grid-2" style="gap: var(--space-4);">
+              <div class="form-group">
+                <label class="form-label">域控地址 <span class="req">*</span></label>
+                <input name="host" class="form-input" placeholder="例如 172.16.3.100" required />
+                <span class="form-label" style="font-size:11px; color:var(--text-tertiary); font-weight:normal;">填写 AD 服务器的 IP 或域名</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label">LDAP 端口 <span class="req">*</span></label>
+                <input name="port" type="number" class="form-input" value="389" required />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">域控域名 <span class="req">*</span></label>
+                <input name="domainName" id="wizDomain" class="form-input" placeholder="例如 domain.com" required />
+                <span class="form-label" style="font-size:11px; color:var(--text-tertiary); font-weight:normal;">输入域名后自动生成 Base DN、UPN 后缀、NetBIOS 域名</span>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Base DN <span class="req">*</span></label>
+                <input name="baseDN" id="wizBaseDN" class="form-input" placeholder="DC=domain,DC=com" required readonly />
+              </div>
+              <div class="form-group">
+                <label class="form-label">绑定账号 <span class="req">*</span></label>
+                <input name="bindUsername" class="form-input" placeholder="admin@domain.com" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">绑定密码 <span class="req">*</span></label>
+                <div class="pos-rel">
+                  <input name="bindPassword" id="wizBindPassword" type="password" class="form-input input-pr-40"  required />
+                  <button type="button" class="pwd-toggle" data-target="wizBindPassword" tabindex="-1" aria-label="显示/隐藏密码" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-md);"><svg class="pwd-icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pwd-icon-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+                </div>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">OU 同步范围 <span class="req">*</span><span class="hint">新建账号时可选的部门 OU</span></label>
+                <div class="flex-row-gap2">
+                  <input name="ouScope" id="wizOuScope" class="form-input flex-1" placeholder="OU=Users,DC=domain,DC=com" required  />
+                  <button type="button" class="btn btn-secondary btn-sm nowrap" id="wizDetectOU" ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 检测</button>
+                </div>
+                <span class="form-label" style="font-size:11px; color:var(--text-tertiary); font-weight:normal;">点击「检测」从域控读取可用 OU 列表选择</span>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">组同步范围 <span class="req">*</span><span class="hint">新建账号时可选的安全组 OU</span></label>
+                <div class="flex-row-gap2">
+                  <input name="groupScope" id="wizGroupScope" class="form-input flex-1" placeholder="OU=Groups,DC=domain,DC=com" required  />
+                  <button type="button" class="btn btn-secondary btn-sm nowrap" id="wizDetectGroup" ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 检测</button>
+                </div>
+                <span class="form-label" style="font-size:11px; color:var(--text-tertiary); font-weight:normal;">点击「检测」从域控读取可用组所在 OU 列表选择</span>
+              </div>
+            </div>
+            
+            <div class="section-title full mt-6" >安全选项</div>
+            <label class="chk-row full"><input name="useTLS" type="checkbox" /> 使用 LDAPS（端口 636）</label>
+            <label class="chk-row full"><input name="insecureSkipVerify" type="checkbox" /> 忽略证书校验（不推荐）</label>
+            
+            <div class="section-title full mt-6" >域信息 <span class="req-badge">必填</span></div>
+            <div class="form-grid form-grid-2 full" style="gap: var(--space-4);">
+              <div class="form-group">
+                <label class="form-label">UPN 后缀 <span class="req">*</span><span class="hint">用于 user@domain</span></label>
+                <input name="domainUPNSuffix" id="wizUPNSuffix" class="form-input" placeholder="domain.com" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">NetBIOS 域名 <span class="req">*</span><span class="hint">用于 DOMAIN\user</span></label>
+                <input name="domainNetBIOS" id="wizNetBIOS" class="form-input" placeholder="DOMAIN" required />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">离职 OU <span class="req">*</span><span class="hint">用户离职后移入的 OU</span></label>
+                <div class="flex-row-gap2">
+                  <input name="disabledOU" id="wizDisabledOU" class="form-input flex-1" placeholder="OU=Disabled Users,DC=domain,DC=com" required  />
+                  <button type="button" class="btn btn-secondary btn-sm nowrap" id="wizDetectDisabledOU" ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 检测</button>
+                </div>
+                <span class="form-label" style="font-size:11px; color:var(--text-tertiary); font-weight:normal;">点击「检测」从域控读取可用 OU 列表选择</span>
+              </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 full mt-6" >
+              <button type="button" id="wizardTestBtn" class="btn btn-secondary btn-sm">测试连接</button>
+              <button type="submit" id="wizardSaveBtn" class="btn btn-primary" disabled>保存并开始使用</button>
+              <button type="button" id="wizardSkipBtn" class="btn btn-secondary" style="margin-top: 8px;">跳过，稍后配置</button>
+            </div>
+            <p id="wizardStatus" class="full" style="font-size: var(--text-sm); margin-top: var(--space-3); color: var(--text-tertiary);"></p>
+          </form>
+        </div>
+      </div>
+
+      <!-- Overview Tab -->
+      <section id="overview" class="tab-panel active">
+        <div class="admin-card">
+          <div class="admin-card-body">
+            <div class="search-area">
+              <div class="search-area-header">
+                <div class="search-area-title">查询 AD 账号</div>
+                <div class="search-area-desc">输入姓名、域用户名或邮箱快速定位用户</div>
+              </div>
+              <div class="search-bar">
+                <div class="search-input-wrap">
+                  <svg class="search-svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input id="adminQuery" class="search-input" placeholder="输入姓名 / 域用户名 / 邮箱" />
+                </div>
+                <button id="adminSearchBtn" class="search-btn-icon" title="搜索" aria-label="搜索">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </button>
+              </div>
+            </div>
+            <div id="adminResult">
+              <div class="empty-state-illustrated">
+                <svg class="empty-illustration" width="120" height="120" viewBox="0 0 120 120" fill="none">
+                  <circle cx="60" cy="60" r="56" stroke="var(--primary-200)" stroke-width="2" fill="var(--primary-50)" opacity="0.6"/>
+                  <circle cx="60" cy="60" r="40" stroke="var(--primary-300)" stroke-width="1.5" fill="var(--primary-50)" opacity="0.3"/>
+                  <line x1="45" y1="52" x2="75" y2="52" stroke="var(--primary-400)" stroke-width="3" stroke-linecap="round"/>
+                  <line x1="45" y1="60" x2="68" y2="60" stroke="var(--primary-300)" stroke-width="3" stroke-linecap="round"/>
+                  <line x1="45" y1="68" x2="62" y2="68" stroke="var(--primary-200)" stroke-width="3" stroke-linecap="round"/>
+                  <circle cx="82" cy="38" r="10" stroke="var(--primary-500)" stroke-width="2" fill="var(--primary-100)"/>
+                  <line x1="89" y1="45" x2="96" y2="52" stroke="var(--primary-500)" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="empty-title">查找并管理 AD 账号</div>
+                <div class="empty-desc">在上方输入关键词开始查询</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Create Tab -->
+      <section id="create" class="tab-panel">
+        <div class="admin-card">
+          <div class="admin-card-body has-padding">
+            <div id="createConfigWarning" class="config-warning hidden">
+              <span class="warn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+              <div class="warn-content">
+                <div class="warn-title">建议配置可选设置</div>
+                <div class="warn-text">部门和组选项未配置，新建账号时可能无法正确选择。请前往 <a href="#" onclick="switchTab('settings');return false;">域控配置</a> 完善可选设置。</div>
+              </div>
+              <button class="warn-close" onclick="this.parentElement.classList.add('hidden')">×</button>
+            </div>
+            <h3 class="section-heading">新建单个 AD 账号</h3>
+            <form id="createForm" class="form-grid form-grid-2">
+              <div class="form-group full">
+                <label class="form-label"><span class="req">*</span> 姓名</label>
+                <input name="fullName" id="createFullName" class="form-input" placeholder="张三" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label"><span class="req">*</span> 部门</label>
+                <select name="ou" id="createOU" class="form-select" required></select>
+                <div style="margin-top: 4px;">
+                  <button type="button" id="refreshOptions" class="btn btn-ghost btn-sm" style="font-size: 11px; padding: 2px 8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> 刷新选项</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">邮箱</label>
+                <input name="mail" type="email" class="form-input" placeholder="zhangsan@company.com" />
+              </div>
+              
+              <div class="full" style="margin-top: var(--space-2); padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); background: var(--bg-muted);">
+                <div style="font-weight: 600; font-size: 13px; margin-bottom: var(--space-4);">资料详情（完善用户信息）</div>
+                <div class="form-grid form-grid-2" style="gap: var(--space-3);">
+                  <div class="form-group">
+                    <label class="form-label">CN<span class="hint ml-1" >自动同步姓名</span></label>
+                    <input name="cn" id="createCN" class="form-input" readonly style="background: var(--bg-surface); color: var(--text-tertiary);" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label"><span class="req">*</span> 域用户名</label>
+                    <input name="samAccountName" id="createSAM" class="form-input" placeholder="zhangsan" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">显示名<span class="hint ml-1" >默认同步姓名</span></label>
+                    <input name="displayName" id="createDisplayName" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">名<span class="hint ml-1" >拼音/英文名</span></label>
+                    <input name="givenName" id="createGivenName" class="form-input" placeholder="San" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">姓<span class="hint ml-1" >拼音/英文姓</span></label>
+                    <input name="surname" id="createSurname" class="form-input" placeholder="Zhang" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">初始密码<span class="hint ml-1" >留空则自动生成</span></label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <div style="position: relative; flex: 1;">
+                        <input name="password" id="createPassword" type="password" class="form-input" style="padding-right: 40px; width: 100%;" placeholder="留空自动生成" />
+                        <button type="button" class="pwd-toggle" data-target="createPassword" tabindex="-1" aria-label="显示/隐藏密码" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-md);"><svg class="pwd-icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pwd-icon-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+                      </div>
+                      <button type="button" id="createPwdGenerateInline" class="btn btn-secondary btn-sm" title="随机生成密码" aria-label="随机生成密码"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+                    </div>
+                  </div>
+                  <label class="chk-row full"><input name="mustChange" type="checkbox" checked /> 首次登录修改密码</label>
+                </div>
+              </div>
+              
+              <div class="form-group full">
+                <label class="form-label">所在组<span class="hint ml-1" >勾选即可多选</span></label>
+                <div id="grpCheckboxes" class="grp-checkboxes"></div>
+                <input type="hidden" name="groupValues" id="groupValues" />
+              </div>
+              
+              <button class="btn btn-primary btn-block full" type="submit">创建账号</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Offboard Tab -->
+      <section id="offboard" class="tab-panel">
+        <div class="admin-card" style="margin-bottom: 16px;">
+          <div class="admin-card-body has-padding">
+            <h3 class="section-heading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 21v-5h6v5"/><path d="M15 12h.01"/></svg> 单个离职处理</h3>
+            <form id="offboardForm" class="form-grid" style="max-width: 500px;">
+              <div class="form-group">
+                <label class="form-label">域用户名 <span class="req">*</span></label>
+                <input name="account" class="form-input" placeholder="要离职的员工账号" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">目标 OU<span class="hint">留空使用系统默认离职 OU</span></label>
+                <input name="targetOU" class="form-input" placeholder="OU=Disabled Users,DC=example,DC=com" />
+              </div>
+              <button class="btn btn-danger" type="submit">禁用并移至离职 OU</button>
+            </form>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-body has-padding">
+            <h3 class="section-heading"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> 批量离职处理</h3>
+            <div class="form-grid" style="max-width: 500px;">
+              <div class="form-group">
+                <label class="form-label">账号列表 <span class="hint">每行一个域用户名</span></label>
+                <textarea id="batchAccounts" class="form-input" rows="5" placeholder="zhangsan&#10;lisi&#10;wangwu"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">目标 OU<span class="hint">留空使用系统默认离职 OU</span></label>
+                <input id="batchTargetOU" class="form-input" placeholder="OU=Disabled Users,DC=example,DC=com" />
+              </div>
+              <button id="batchOffboardBtn" class="btn btn-danger">批量禁用并移入离职 OU</button>
+              <div id="batchResult" style="font-size: 13px; margin-top: 8px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logs Tab -->
+      <section id="logs" class="tab-panel">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg> 审计日志</h3>
+            <div class="flex gap-2 items-center">
+              <span id="auditRefreshStatus" style="font-size: 11px; color: var(--text-tertiary);"></span>
+              <select id="auditRefreshSelect" class="form-select" style="padding: 4px 8px; font-size: 11px; width: auto;" onchange="setAuditRefresh(parseInt(this.value)||0)">
+                <option value="0">不自动刷新</option>
+                <option value="10">10s</option>
+                <option value="30" selected>30s</option>
+                <option value="60">60s</option>
+              </select>
+              <button id="refreshLogs" class="btn btn-ghost btn-sm">刷新</button>
+            </div>
+          </div>
+          <div class="admin-card-body has-padding">
+            <div class="audit-filters">
+              <div class="audit-filter-tabs">
+                <button class="audit-filter-tab active" data-filter="all" onclick="setAuditFilter('all')">全部</button>
+                <button class="audit-filter-tab" data-filter="admin" onclick="setAuditFilter('admin')">管理员</button>
+                <button class="audit-filter-tab" data-filter="user" onclick="setAuditFilter('user')">普通用户</button>
+              </div>
+              <select id="auditActionFilter" class="form-select" style="padding: 4px 8px; font-size: 11px; width: auto;" onchange="resetAuditPage();loadLogs()">
+                <option value="">所有操作</option>
+                <option value="login">登录</option>
+                <option value="create_user">创建用户</option>
+                <option value="delete_user">删除用户</option>
+                <option value="disable_user">禁用用户</option>
+                <option value="enable_user">启用用户</option>
+                <option value="unlock_user">解锁用户</option>
+                <option value="unlock_self">自助解锁</option>
+                <option value="reset_user_password">重置密码</option>
+                <option value="reset_self_password">自助改密</option>
+                <option value="change_password">修改密码</option>
+                <option value="save_ad_settings">域控配置</option>
+                <option value="search_users">搜索查询</option>
+                <option value="offboard_user">离职处理</option>
+                <option value="add_group">加入组</option>
+                <option value="remove_group">移除组</option>
+                <option value="schedule_disable_user">定时禁用</option>
+                <option value="cancel_scheduled_task">取消定时任务</option>
+                <option value="update_user">更新用户</option>
+                <option value="create_admin">创建管理员</option>
+                <option value="delete_admin">删除管理员</option>
+                <option value="reset_admin_password">重置管理员密码</option>
+              </select>
+              <input id="auditActorInput" type="text" class="form-input" placeholder="操作者" style="padding: 4px 8px; font-size: 12px; width: 120px;" oninput="auditDebouncedLoad()" />
+              <input id="auditSearch" type="text" class="form-input" placeholder="目标账号" style="padding: 4px 8px; font-size: 12px; width: 120px;" oninput="auditDebouncedLoad()" />
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--text-tertiary);">从 <input type="datetime-local" id="auditStartDate" class="form-input" style="padding: 4px 8px; font-size: 12px; width: 150px;" onchange="resetAuditPage();loadLogs()" /></label>
+              <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--text-tertiary);">到 <input type="datetime-local" id="auditEndDate" class="form-input" style="padding: 4px 8px; font-size: 12px; width: 150px;" onchange="resetAuditPage();loadLogs()" /></label>
+              <button class="btn btn-ghost btn-sm" onclick="resetAuditPage();loadLogs()" style="font-size: 11px;">查询</button>
+            </div>
+            <div id="auditLogs"></div>
+            <div id="auditPagination" style="margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;"></div>
+            <div id="auditCountSummary" style="margin-top: 8px; font-size: 11px; color: var(--text-tertiary); text-align: right;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tasks Tab -->
+      <section id="tasks" class="tab-panel">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M19 3l3 3"/></svg> 定时任务列表</h3>
+            <button id="refreshTasks" class="btn btn-ghost btn-sm">刷新</button>
+          </div>
+          <div class="admin-card-body has-padding">
+            <div id="tasksList"></div>
+            <div id="tasksEmpty" class="empty-state" style="padding: 40px 0; text-align: center;">
+              <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
+              <div style="color: var(--text-tertiary); font-size: var(--text-sm);">暂无定时任务</div>
+              <div style="color: var(--text-tertiary); font-size: 11px; margin-top: 4px;">在用户操作中可以设置定时禁用</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings Tab -->
+      <section id="settings" class="tab-panel">
+        <div class="admin-card">
+          <div class="admin-card-header" style="background: var(--primary-50);">
+            <h3 class="admin-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> 域控连接配置</h3>
+          </div>
+          <div class="admin-card-body has-padding">
+            <form id="adSettingsForm" class="form-grid form-grid-2">
+              <div class="section-title full">基础连接 <span class="req-badge">必填</span></div>
+              <div class="full mb-2" >
+                <button type="button" id="fillBaseDefaults" class="btn btn-secondary btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 填入示例值</button>
+              </div>
+              <div class="form-group">
+                <label class="form-label">域控地址 <span class="req">*</span><span class="hint">IP 或域名均可</span></label>
+                <input name="host" class="form-input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">LDAP 端口 <span class="req">*</span></label>
+                <input name="port" type="number" class="form-input" value="389" required />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">域控域名 <span class="req">*</span></label>
+                <input name="domainName" id="settingsDomain" class="form-input" placeholder="例如 domain.com" required />
+                <span class="form-label" style="font-size:11px; color:var(--text-tertiary); font-weight:normal;">输入域名后自动生成 UPN 后缀、NetBIOS 域名</span>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Base DN <span class="req">*</span></label>
+                <input name="baseDN" class="form-input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">绑定账号 <span class="req">*</span></label>
+                <input name="bindUsername" class="form-input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">绑定密码 <span class="req">*</span><span class="hint">首次必填，后续留空则不修改</span></label>
+                <div class="pos-rel">
+                  <input name="bindPassword" id="settingsBindPassword" type="password" class="form-input input-pr-40"  />
+                  <button type="button" class="pwd-toggle" data-target="settingsBindPassword" tabindex="-1" aria-label="显示/隐藏密码" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-md);"><svg class="pwd-icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pwd-icon-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+                </div>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">OU 同步范围 <span class="req">*</span><span class="hint">新建账号时可选的部门 OU</span></label>
+                <div class="flex-row-gap2">
+                  <input name="ouScope" class="form-input flex-1" id="settingsOuScope" placeholder="OU=Users,DC=domain,DC=com" required  />
+                  <button type="button" class="btn btn-secondary btn-sm nowrap" id="settingsDetectOU" ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 检测</button>
+                </div>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">组同步范围 <span class="req">*</span><span class="hint">新建账号时可选的安全组 OU</span></label>
+                <div class="flex-row-gap2">
+                  <input name="groupScope" class="form-input flex-1" id="settingsGroupScope" placeholder="OU=Groups,DC=domain,DC=com" required  />
+                  <button type="button" class="btn btn-secondary btn-sm nowrap" id="settingsDetectGroup" ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 检测</button>
+                </div>
+              </div>
+              
+              <div class="section-title full">安全选项</div>
+              <label class="chk-row full"><input name="useTLS" type="checkbox" /> 使用 LDAPS（端口 636）</label>
+              <label class="chk-row full"><input name="insecureSkipVerify" type="checkbox" /> 忽略证书校验（不推荐）</label>
+              
+              <div class="section-title full">域信息 <span class="req-badge">必填</span></div>
+              <div class="form-group">
+                <label class="form-label">UPN 后缀 <span class="req">*</span><span class="hint">用于 user@domain</span></label>
+                <input name="domainUPNSuffix" id="settingsUPNSuffix" class="form-input" placeholder="domain.com" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">NetBIOS 域名 <span class="req">*</span><span class="hint">用于 DOMAIN\user</span></label>
+                <input name="domainNetBIOS" id="settingsNetBIOS" class="form-input" placeholder="DOMAIN" required />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">离职 OU <span class="req">*</span><span class="hint">用户离职后移入的 OU</span></label>
+                <div class="flex-row-gap2">
+                  <input name="disabledOU" class="form-input flex-1" id="settingsDisabledOU" placeholder="OU=Disabled Users,DC=domain,DC=com" required  />
+                  <button type="button" class="btn btn-secondary btn-sm nowrap" id="settingsDetectDisabledOU" ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 检测</button>
+                </div>
+              </div>
+              
+              <div class                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">密码有效期（天）<span class="hint">与域控策略一致，用于计算密码到期状态</span></label>
+                <input name="passwordMaxAgeDays" type="number" class="form-input" value="90" min="1" max="3650" />
+              </div>
+
+              <div class="flex gap-3 full mt-4" >
+                <button type="submit" class="btn btn-primary">保存配置</button>
+                <button type="button" id="testADSettings" class="btn btn-secondary">测试连接</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- 飞书登录配置卡片 -->
+        <div class="admin-card" style="margin-top: var(--space-5);">
+          <div class="admin-card-header" style="background: #e0f2fe;">
+            <h3 class="admin-card-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/></svg> 飞书登录配置</h3>
+            <span id="feishuStatusBadge" class="badge badge-neutral" style="font-size: 11px;">未配置</span>
+          </div>
+          <div class="admin-card-body has-padding">
+            <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: var(--space-4); font-size: 12px; color: var(--text-secondary); line-height: 1.7;">
+              <strong>配置步骤：</strong><br>
+              1. 在<a href="https://open.feishu.cn/app" target="_blank" rel="noopener" style="color: var(--primary-600);">飞书开放平台</a>创建「企业自建应用」<br>
+              2. 在「应用能力 → 网页应用」中开启能力，<strong>重定向 URL</strong> 填写下方「回调地址」<br>
+              3. 在「安全设置 → 重定向 URL」中也添加同一地址<br>
+              4. 将应用的 App ID / App Secret 填入下方，发布应用版本并审核通过<br>
+              <br>
+              <strong>本服务回调地址：</strong><code id="feishuRedirectHint" style="background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px; user-select: all;">尚未生成</code>
+              <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('feishuRedirectHint').textContent).then(function(){showToast('已复制','success')})" style="margin-left:6px;font-size:11px;cursor:pointer;background:none;border:1px solid var(--border-color);border-radius:4px;padding:2px 8px;color:var(--text-secondary);">复制</button>
+            </div>
+            <form id="feishuSettingsForm" class="form-grid form-grid-2">
+              <div class="form-group full">
+                <label class="chk-row" style="margin-bottom: 0;">
+                  <input name="enabled" type="checkbox" /> 启用飞书自助登录
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="form-label">App ID <span class="req">*</span><span class="hint">飞书应用凭证</span></label>
+                <input name="appId" class="form-input" placeholder="cli_xxxxxxxxxxxx" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">App Secret <span class="hint">留空则不修改</span></label>
+                <div class="pos-rel">
+                  <input name="appSecret" id="feishuAppSecret" type="password" class="form-input input-pr-40"  placeholder="已设置（留空不修改）" />
+                  <button type="button" class="pwd-toggle" data-target="feishuAppSecret" tabindex="-1" aria-label="显示/隐藏密码" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-md);"><svg class="pwd-icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pwd-icon-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+                </div>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">回调地址 <span class="req">*</span><span class="hint">飞书开放平台「重定向 URL」需与此一致</span></label>
+                <input name="redirectUri" class="form-input" placeholder="https://your-domain.com/api/auth/feishu/callback" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">会话时长（小时）<span class="hint">登录后有效时长</span></label>
+                <input name="sessionDurationHours" type="number" class="form-input" value="8" min="1" max="168" />
+              </div>
+              <div class="form-group full" style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-tertiary);">
+                <span id="feishuSecretHint"></span>
+              </div>
+              <div class="flex gap-3 full mt-4" >
+                <button type="submit" class="btn btn-primary">保存飞书配置</button>
+                <button type="button" id="testFeishuSettings" class="btn btn-secondary">测试凭据</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- 管理员管理模态框 -->
+  <div id="adminMgmtModal" class="modal" role="dialog" aria-modal="true" aria-label="管理员管理" style="z-index: 1060;">
+    <div class="modal-content" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg> 管理员管理</h3>
+        <button class="modal-close" onclick="closeAdminMgmtModal()">×</button>
+      </div>
+      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+        <!-- 创建新管理员 -->
+        <div style="margin-bottom: var(--space-6); padding: var(--space-4); background: var(--bg-secondary); border-radius: var(--radius-xl); border: 1px solid var(--border-subtle);">
+          <h4 style="font-size: 14px; font-weight: 600; margin-bottom: var(--space-3);">创建新管理员</h4>
+          <form id="createAdminForm" onsubmit="event.preventDefault(); createAdmin(this);">
+            <div class="form-grid form-grid-2" style="margin-bottom: var(--space-4);">
+              <div class="form-group">
+                <label class="form-label">用户名 <span class="req">*</span></label>
+                <input name="username" class="form-input" placeholder="登录用户名" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">初始密码 <span class="req">*</span><span class="hint">至少8位</span></label>
+                <input name="password" type="password" class="form-input" required minlength="8" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">预设角色</label>
+                <select name="role" class="form-select" onchange="applyPresetPerms(this.value)">
+                  <option value="super_admin">超级管理员（全部权限）</option>
+                  <option value="hr_admin">HR管理员（创建/禁用/离职/审计）</option>
+                  <option value="helpdesk" selected>服务台（解锁/重置密码/审计）</option>
+                  <option value="custom" disabled>自定义（手动勾选后自动切换）</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label mb-2" >权限勾选 <span class="hint">选择预设角色自动勾选，也可手动调整</span></label>
+              <div id="createPermsList" class="perm-list"></div>
+            </div>
+            <button type="submit" class="btn btn-primary">创建管理员</button>
+          </form>
+        </div>
+        <!-- 管理员列表 -->
+        <h4 style="font-size: 14px; font-weight: 600; margin-bottom: var(--space-3);">管理员列表</h4>
+        <div id="adminsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑管理员权限模态框 -->
+  <div id="editPermsModal" class="modal" role="dialog" aria-modal="true" aria-label="编辑权限" style="z-index: 1070;">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="editPermsTitle">编辑权限</h3>
+        <button class="modal-close" onclick="closeEditPermsModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="form-hint mb-3" >勾选该管理员允许使用的功能。修改后角色将标记为"自定义"。</p>
+        <div id="editPermsList" class="perm-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEditPermsModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveAdminPerms()">保存权限</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 高危操作二次确认弹窗 -->
+  <div id="dangerConfirmModal" class="modal" role="dialog" aria-modal="true" aria-label="高危操作确认" style="z-index: 1070;">
+    <div class="modal-content confirm-modal" style="max-width: 440px;">
+      <div class="modal-body text-center" >
+        <div class="confirm-icon" style="background: var(--danger-50); color: var(--danger-600);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h3 id="dangerConfirmTitle">高危操作确认</h3>
+        <p style="color: var(--text-tertiary); font-size: var(--text-sm); margin-bottom: var(--space-3);" id="dangerConfirmDesc">即将执行高危操作</p>
+        <div class="confirm-detail mb-3" >
+          <span style="color: var(--text-tertiary); font-size: 12px;">目标账号</span>
+          <div id="dangerConfirmTarget" style="font-weight: 700; color: var(--danger-600); font-size: 16px; margin-top: 4px;"></div>
+        </div>
+        <div class="confirm-warning" style="margin-bottom: var(--space-4);">
+          <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span id="dangerConfirmWarn">此操作不可逆</span>
+        </div>
+        <div style="margin-bottom: var(--space-2); text-align: left;">
+          <label class="form-label" id="dangerConfirmHint" style="font-size: 12px;">请输入账号名以确认</label>
+          <input type="text" id="dangerConfirmInput" class="form-input" autocomplete="off" style="width: 100%;" />
+        </div>
+        <div class="flex gap-3 mt-4" >
+          <button class="btn btn-secondary flex-1"  onclick="closeDangerConfirm()">取消</button>
+          <button class="btn btn-danger flex-1"  id="dangerConfirmOk" disabled>确认执行</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-label="操作确认">
+    <div class="modal-content confirm-modal" style="max-width: 400px;">
+      <div class="modal-body text-center" >
+        <div class="confirm-icon" id="confirmIcon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h3 id="confirmTitle">确认操作</h3>
+        <p class="text-muted-sm" id="confirmDesc">确定要执行此操作吗？</p>
+        <div class="confirm-detail" id="confirmDetail"></div>
+        <div class="confirm-warning" id="confirmWarning">
+          <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span id="confirmWarningText">此操作可能会影响用户正常使用</span>
+        </div>
+        <div class="flex gap-3 mt-4" >
+          <button class="btn btn-secondary flex-1"  id="confirmCancelBtn">取消</button>
+          <button class="btn btn-danger flex-1"  id="confirmOkBtn">确认执行</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Undo Toast -->
+<button class="btn btn-ghost btn-sm" id="undoBtn">撤销</button>
+    </div>
+    <div class="undo-progress" id="undoProgress" style="animation-duration: 10s;"></div>
+  </div>
+
+  <!-- User Detail Modal -->
+  <div id="userDetailModal" class="modal" role="dialog" aria-modal="true" aria-label="用户详情">
+    <div class="modal-content detail-modal" style="max-width: 680px;">
+      <div class="detail-header">
+        <div class="detail-avatar" id="detailAvatar">U</div>
+        <div class="detail-info">
+          <div class="detail-breadcrumb" id="detailBreadcrumb">账号操作 / 用户详情</div>
+          <h2 id="detailDisplayName">用户名称</h2>
+          <div class="detail-account" id="detailAccount">account</div>
+        </div>
+        <div class="detail-status" id="detailStatus"></div>
+      </div>
+      <div class="detail-tabs">
+        <button class="detail-tab active" data-tab="info">基本信息</button>
+        <button class="detail-tab" data-tab="groups">组成员</button>
+        <button class="detail-tab" data-tab="schedule">定时任务</button>
+        <button class="detail-tab" data-tab="history">操作记录</button>
+      </div>
+      <div class="detail-body">
+        <div id="detailTabInfo" class="detail-tab-content active">
+          <div class="detail-grid" id="detailInfoGrid"></div>
+        </div>
+        <div id="detailTabGroups" class="detail-tab-content">
+          <div id="detailGroupsList"></div>
+        </div>
+        <div id="detailTabSchedule" class="detail-tab-content">
+          <div id="detailScheduleList"></div>
+          <div style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--border-subtle);">
+            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: var(--space-4);">添加定时禁用</h4>
+            <div class="form-grid" style="max-width: 300px;">
+              <div class="form-group">
+                <label class="form-label">执行时间</label>
+                <input type="datetime-local" id="detailScheduleTime" class="form-input" />
+              </div>
+              <button id="detailScheduleBtn" class="btn btn-primary btn-sm">添加任务</button>
+            </div>
+          </div>
+        </div>
+        <div id="detailTabHistory" class="detail-tab-content">
+          <div id="detailHistoryList"></div>
+        </div>
+      </div>
+      <div class="detail-actions" id="detailActions"></div>
+      <button class="modal-close" onclick="closeUserDetail()">×</button>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="changePwdModal" class="modal" role="dialog" aria-modal="true" aria-label="修改密码">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title">修改密码</h3>
+      </div>
+      <div class="modal-body">
+        <form id="changePwdForm" class="form-grid">
+          <div class="form-group">
+            <input name="oldPassword" type="password" class="form-input" placeholder="当前密码" required />
+          </div>
+          <div class="form-group">
+            <input name="newPassword" type="password" class="form-input" placeholder="新密码（至少8位）" required minlength="8" />
+          </div>
+          <div class="form-group">
+            <input name="confirmPassword" type="password" class="form-input" placeholder="确认新密码" required />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="changePwdCancel">取消</button>
+        <button class="btn btn-primary" id="changePwdSubmit">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div id="resetPwdModal" class="modal" role="dialog" aria-modal="true" aria-label="重置密码" style="z-index: 1060;">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title">重置密码</h3>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted-sm" id="resetPwdTarget">用户：</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">新密码</label>
+            <div class="flex gap-2">
+              <input id="resetPwdInput" type="text" class="form-input flex-1"  placeholder="点击「随机」或手动输入" />
+              <button type="button" id="resetPwdGenerate" class="btn btn-secondary btn-sm" title="随机生成密码" aria-label="随机生成密码"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+            </div>
+          </div>
+          <label class="chk-row"><input id="resetPwdMustChange" type="checkbox" checked /> 要求用户下次登录时修改密码</label>
+          <div class="flex gap-2">
+            <button type="button" id="resetPwdCancel" class="btn btn-secondary flex-1" >取消</button>
+            <button type="button" id="resetPwdConfirm" class="btn btn-primary flex-1" >重置密码</button>
+          </div>
+          <div id="resetPwdResult" style="display: none; padding: var(--space-4); background: var(--success-50); border-radius: var(--radius-xl); border: 1px solid var(--success-200); text-align: center; margin-top: var(--space-3);">
+            <div style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--success-600); word-break: break-all; margin-bottom: var(--space-2);" id="resetPwdFinal"></div>
+            <div id="resetPwdCountdown" style="font-size:12px; font-weight:600; color: var(--warning-600); min-height:16px; margin-bottom: var(--space-2);"></div>
+            <div id="resetPwdResultActions" style="display:flex; gap:var(--space-2); justify-content:center;">
+              <button type="button" id="resetPwdCopy" class="btn btn-secondary btn-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg> 复制密码</button>
+              <button type="button" id="resetPwdDone" class="btn btn-primary btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 完成</button>
+            </div>
+            <div id="resetPwdExpiredActions" style="display:none; flex-direction:column; gap:var(--space-2); margin-top: var(--space-2);">
+              <button type="button" id="resetPwdExpiredClose" class="btn btn-primary btn-sm">已复制，关闭窗口</button>
+              <button type="button" id="resetPwdRegenerate" class="btn btn-danger btn-sm">未复制，重新生成密码</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Password Modal -->
+  <div id="createPwdModal" class="modal" role="dialog" aria-modal="true" aria-label="设置初始密码">
+    <div class="modal-content" style="max-width: 420px;">
+      <div id="createPwdStep1">
+        <div class="modal-header">
+          <h3 class="modal-title">设置初始密码</h3>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted-sm">为新创建的用户设置密码</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">密码</label>
+              <div class="flex gap-2">
+                <input id="createPwdInput" type="text" class="form-input flex-1"  placeholder="点击「随机」或手动输入" />
+                <button type="button" id="createPwdGenerateBtn" class="btn btn-secondary btn-sm" title="随机生成密码" aria-label="随机生成密码"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+              </div>
+            </div>
+            <label class="chk-row"><input id="createPwdMustChange" type="checkbox" checked /> 要求用户下次登录时修改密码</label>
+            <div class="flex gap-2">
+              <button type="button" id="createPwdCancelBtn" class="btn btn-secondary flex-1" >取消</button>
+              <button type="button" id="createPwdConfirmBtn" class="btn btn-primary flex-1" >创建账号</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="createPwdStep2" style="display: none;">
+        <div class="modal-body" style="text-align: center; padding: var(--space-8);">
+          <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--success-50); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4); font-size: 36px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <h3 class="mb-2">用户创建成功</h3>
+          <p class="text-muted-sm" id="createPwdResultUser">账号已创建</p>
+          <div style="background: var(--bg-muted); border-radius: var(--radius-xl); border: 1px solid var(--border-subtle); padding: var(--space-4); margin-bottom: var(--space-4);">
+            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: var(--space-1);">初始密码</div>
+            <div id="createPwdFinalPwd" style="font-family: var(--font-mono); font-size: 28px; font-weight: var(--weight-bold); color: var(--success-600); letter-spacing: 2px; word-break: break-all;">------</div>
+            <button type="button" id="createPwdCopyBtn" class="btn btn-ghost btn-sm" style="width: 100%; margin-top: var(--space-2);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg> 复制密码</button>
+          </div>
+          <p style="font-size: 12px; color: var(--text-secondary); text-align: left;"><b>安全提示：</b>请将密码及时发送给用户，关闭后不再显示。</p>
+          <button type="button" id="createPwdDoneBtn" class="btn btn-primary btn-block mt-4" >完成</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ES Module 入口（替代旧 admin.js）-->
+  <script type="module" src="/assets/admin/app.js?v=38"></script>
+</body>
+</html>

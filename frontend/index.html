@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>域账户自助服务</title>
+  <link rel="stylesheet" href="/assets/tokens.css?v=1" />
+  <link rel="stylesheet" href="/assets/components.css?v=1" />
+  <link rel="stylesheet" href="/assets/selfservice.css?v=1" />
+  <style>
+    /* ═══════════════════════════════════════════
+       AD Self-Service — 专用页面样式
+       清晰、专业、安全的产品气质
+       ═══════════════════════════════════════════ */
+
+    /* ─── 全局重置与变量 ─── */
+    .ss-page {
+      --ss-cyan: #0EA5E9;
+      --ss-cyan-hover: #0284C7;
+      --ss-cyan-ghost: rgba(14,165,233,0.08);
+      --ss-cyan-border: rgba(14,165,233,0.25);
+      --ss-amber: #F59E0B;
+      --ss-amber-bg: rgba(245,158,11,0.08);
+      --ss-amber-border: rgba(245,158,11,0.3);
+      --ss-green: #10B981;
+      --ss-green-bg: rgba(16,185,129,0.08);
+      --ss-red: #EF4444;
+      --ss-red-bg: rgba(239,68,68,0.06);
+      --ss-bg: #F7F9FC;
+      --ss-surface: #FFFFFF;
+      --ss-ink: #0F172A;
+      --ss-muted: #64748B;
+      --ss-line: #E2E8F0;
+      --ss-line-subtle: #F1F5F9;
+      --ss-shadow-sm: 0 1px 4px rgba(0,0,0,0.04);
+      --ss-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      --ss-shadow-lg: 0 12px 48px rgba(0,0,0,0.1);
+      --ss-radius: 14px;
+      --ss-radius-sm: 10px;
+      --ss-radius-xs: 6px;
+      --ss-max-w: 720px;
+      --ss-enter: cubic-bezier(0.16,1,0.3,1);
+    }
+
+    /* ─── 暗色主题 ─── */
+    body.theme-dark .ss-page {
+      --ss-bg: #0B1120;
+      --ss-surface: #151F32;
+      --ss-ink: #E8EDF5;
+      --ss-muted: #7B8CA8;
+      --ss-line: #1E2D45;
+      --ss-line-subtle: #182540;
+      --ss-cyan-ghost: rgba(14,165,233,0.1);
+      --ss-cyan-border: rgba(14,165,233,0.3);
+      --ss-shadow-sm: 0 1px 4px rgba(0,0,0,0.3);
+      --ss-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      --ss-shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
+    }
+    @media (prefers-color-scheme: dark) {
+      .ss-page:not(.theme-light) {
+        --ss-bg: #0B1120;
+        --ss-surface: #151F32;
+        --ss-ink: #E8EDF5;
+        --ss-muted: #7B8CA8;
+        --ss-line: #1E2D45;
+        --ss-line-subtle: #182540;
+        --ss-cyan-ghost: rgba(14,165,233,0.1);
+        --ss-cyan-border: rgba(14,165,233,0.3);
+        --ss-shadow-sm: 0 1px 4px rgba(0,0,0,0.3);
+        --ss-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        --ss-shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
+      }
+    }
+
+    /* ─── 页面外壳 ─── */
+    .ss-page {
+      min-height: 100vh;
+      background: var(--ss-bg);
+      background: #F7F9FC;
+      color: var(--ss-ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s;
+    }
+    .ss-wrap {
+      width: min(var(--ss-max-w), calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 0 0 80px;
+    }
+
+    /* ─── 顶部导航 ─── */
+    .ss-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0 16px;
+      border-bottom: 1px solid var(--ss-line);
+      margin-bottom: 32px;
+    }
+    .ss-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.2px;
+    }
+    .ss-brand-icon {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: #0EA5E9;
+      display: grid; place-items: center; color: #fff; font-size: 14px; font-weight: 800;
+    }
+    .ss-nav-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500; color: var(--ss-muted);
+      text-decoration: none; padding: 6px 12px;
+      border-radius: var(--ss-radius-xs);
+      transition: all 0.15s;
+    }
+    .ss-nav-link:hover { color: var(--ss-cyan); background: var(--ss-cyan-ghost); }
+    .ss-nav-right {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .ss-user-welcome {
+      font-size: 13px; font-weight: 600; color: var(--ss-ink);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .ss-logout-btn {
+      padding: 4px 10px !important;
+      font-size: 12px !important;
+    }
+
+    /* ─── 认证加载覆盖层 ─── */
+    .ss-auth-overlay {
+      position: fixed; inset: 0;
+      background: #0B1120;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 2000;
+      animation: ssFadeUp 0.3s var(--ss-enter);
+      padding: 20px;
+    }
+    .ss-auth-overlay .ss-spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #3370FF;
+      border-radius: 50%;
+      animation: ssSpin 0.7s linear infinite;
+      margin-bottom: 16px;
+    }
+    .ss-auth-overlay p {
+      font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 500;
+    }
+
+    /* ─── 登录卡片 ─── */
+    .ss-login-card {
+      width: 100%; max-width: 380px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+      padding: 40px 32px 32px;
+      text-align: center;
+      animation: ssFadeUp 0.4s var(--ss-enter);
+      display: none;
+    }
+    .ss-login-card.visible { display: block; }
+
+    .ss-login-logo {
+      width: 64px; height: 64px;
+      margin: 0 auto 20px;
+      display: grid; place-items: center;
+    }
+    .ss-login-logo svg { width: 100%; height: 100%; }
+
+    .ss-login-title {
+      font-size: 22px; font-weight: 700;
+      color: #0F172A !important; margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    .ss-login-desc {
+      font-size: 14px; color: #64748B !important;
+      line-height: 1.6; margin-bottom: 20px;
+    }
+    .ss-login-features {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 24px; text-align: left;
+    }
+    .ss-login-feature {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: #475569 !important;
+    }
+    .ss-login-feature svg { flex-shrink: 0; color: #3370FF; }
+
+    .ss-auth-login-btn {
+      width: 100%;
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 13px 24px;
+      font-size: 15px; font-weight: 600;
+      border-radius: 12px;
+      border: 0; cursor: pointer;
+      background: #0EA5E9;
+      color: #fff;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .ss-auth-login-btn:hover { background: #0284C7; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(14,165,233,0.35); }
+    .ss-auth-login-btn:active { transform: translateY(0); }
+    .ss-auth-login-btn svg { flex-shrink: 0; }
+
+    .ss-login-footer {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #E2E8F0;
+      font-size: 12px; color: #94A3B8;
+      line-height: 1.6;
+    }
+    .ss-login-footer a { color: #3370FF; text-decoration: none; }
+    .ss-login-footer a:hover { text-decoration: underline; }
+
+    /* 加载态（验证中） */
+    .ss-auth-loading {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+
+    /* ─── 操作提示文字 ─── */
+    .ss-actions-hint {
+      font-size: 12px; font-weight: 600;
+      padding: 6px 10px;
+      background: var(--ss-red-bg);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: var(--ss-radius-xs);
+    }
+
+    /* ─── 本人卡片标识 ─── */
+    .ss-card-self {
+      border-color: var(--ss-cyan-border) !important;
+    }
+    .ss-card-self-tag {
+      display: inline-block;
+      padding: 1px 7px;
+      font-size: 10px; font-weight: 700;
+      background: var(--ss-cyan-ghost);
+      color: var(--ss-cyan);
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── Hero 搜索区 ─── */
+    .ss-hero {
+      text-align: center;
+      padding: 24px 0 36px;
+    }
+    .ss-hero-title {
+      font-size: clamp(26px, 5vw, 34px);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .ss-hero-title em {
+      font-style: normal;
+      color: var(--ss-cyan);
+    }
+    .ss-hero-desc {
+      font-size: 14px;
+      color: var(--ss-muted);
+      line-height: 1.6;
+      max-width: 440px;
+      margin: 0 auto 28px;
+    }
+
+    /* ─── 搜索框 ─── */
+    .ss-search-box {
+      position: relative;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .ss-search-input {
+      width: 100%;
+      padding: 14px 56px 14px 48px;
+      font-size: 15px;
+      border: 2px solid var(--ss-line);
+      border-radius: var(--ss-radius);
+      background: var(--ss-surface);
+      color: var(--ss-ink);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: var(--ss-shadow-sm);
+    }
+    .ss-search-input:focus {
+      border-color: var(--ss-cyan);
+      box-shadow: 0 0 0 4px var(--ss-cyan-ghost), var(--ss-shadow);
+    }
+    .ss-search-input::placeholder { color: var(--ss-muted); opacity: 0.7; }
+    .ss-search-icon {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      pointer-events: none; color: var(--ss-muted);
+    }
+    .ss-search-btn {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      display: grid; place-items: center;
+      width: 40px; height: 40px;
+      border: 0; border-radius: var(--ss-radius-sm);
+      background: var(--ss-cyan); color: #fff;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .ss-search-btn:hover { background: var(--ss-cyan-hover); transform: translateY(-50%) scale(1.04); }
+    .ss-search-btn:active { transform: translateY(-50%) scale(0.96); }
+    .ss-search-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--ss-muted);
+      opacity: 0.7;
+    }
+    .ss-search-hint kbd {
+      display: inline-block;
+      padding: 1px 6px;
+      font-family: inherit;
+      font-size: 11px;
+      background: var(--ss-line-subtle);
+      border: 1px solid var(--ss-line);
+      border-radius: 4px;
+      color: var(--ss-muted);
+    }
+
+    /* ─── 扫描线动画 ─── */
+    .ss-search-input.scanning {
+      border-color: var(--ss-cyan);
+    }
+    .ss-search-input.scanning::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      animation: ssScan 1.5s ease-in-out infinite;
+    }
+
+    /* ─── Loader ─── */
+    .ss-loader {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 40px 0;
+      color: var(--ss-muted);
+      font-size: 13px;
+    }
+    .ss-loader.active { display: flex; }
+    .ss-spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--ss-line);
+      border-top-color: var(--ss-cyan);
+      border-radius: 50%;
+      animation: ssSpin 0.7s linear infinite;
+    }
+    @keyframes ssSpin { to { transform: rotate(360deg); } }
+
+    /* ─── 骨架屏 ─── */
+    .ss-skeleton {
+      border-radius: var(--ss-radius);
+      padding: 20px;
+      margin-bottom: 12px;
+      background: var(--ss-surface);
+      border: 1px solid var(--ss-line);
+    }
+    .ss-skeleton-row {
+      height: 14px;
+      border-radius: 6px;
+      background: var(--ss-line-subtle);
+      margin-bottom: 10px;
+      animation: ssPulse 1.5s ease-in-out infinite;
+    }
+    .ss-skeleton-row:last-child { margin-bottom: 0; width: 60%; }
+    .ss-skeleton-row:nth-child(1) { width: 40%; }
+    .ss-skeleton-row:nth-child(2) { width: 80%; animation-delay: 0.15s; }
+    .ss-skeleton-row:nth-child(3) { width: 55%; animation-delay: 0.3s; }
+    @keyframes ssPulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ─── 结果卡片 ─── */
+    .ss-results { display: grid; gap: 12px; }
+
+    .ss-card {
+      background: var(--ss-surface);
+      border: 1px solid var(--ss-line);
+      border-radius: var(--ss-radius);
+      overflow: hidden;
+      box-shadow: var(--ss-shadow-sm);
+      transition: box-shadow 0.2s, border-color 0.2s;
+      animation: ssFadeUp 0.4s var(--ss-enter) backwards;
+    }
+    .ss-card:hover {
+      box-shadow: var(--ss-shadow);
+      border-color: var(--ss-cyan-border);
+    }
+
+    .ss-card-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .ss-card-avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: #0EA5E9;
+      color: #fff; display: grid; place-items: center;
+      font-size: 16px; font-weight: 700; flex-shrink: 0;
+    }
+    .ss-card-info { flex: 1; min-width: 0; }
+    .ss-card-name {
+      font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ss-card-acct {
+      font-size: 12px; color: var(--ss-muted); margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ss-card-arrow {
+      color: var(--ss-muted);
+      transition: transform 0.25s var(--ss-enter);
+      flex-shrink: 0;
+    }
+    .ss-card.expanded .ss-card-arrow { transform: rotate(180deg); }
+
+    /* ─── 状态徽标 ─── */
+    .ss-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .ss-badge::before {
+      content: ''; width: 6px; height: 6px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .ss-badge-ok { background: var(--ss-green-bg); color: #047857; }
+    .ss-badge-ok::before { background: var(--ss-green); }
+    .ss-badge-locked { background: var(--ss-red-bg); color: #B91C1C; }
+    .ss-badge-locked::before { background: var(--ss-red); animation: ssBlink 1.2s ease-in-out infinite; }
+    .ss-badge-disabled { background: var(--ss-amber-bg); color: #92400E; }
+    .ss-badge-disabled::before { background: var(--ss-amber); }
+    @keyframes ssBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ─── 卡片展开内容 ─── */
+    .ss-card-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s var(--ss-enter), padding 0.35s var(--ss-enter);
+    }
+    .ss-card.expanded .ss-card-body {
+      max-height: 500px;
+    }
+    .ss-card-body-inner {
+      padding: 0 20px 20px;
+      border-top: 1px solid var(--ss-line);
+      padding-top: 16px;
+    }
+
+    .ss-detail-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 16px;
+      font-size: 13px;
+    }
+    .ss-detail-label {
+      color: var(--ss-muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .ss-detail-value {
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    /* ─── 操作按钮 ─── */
+    .ss-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--ss-line-subtle);
+    }
+    .ss-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      font-size: 13px; font-weight: 600;
+      border-radius: var(--ss-radius-sm);
+      border: 0; cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .ss-btn:active { transform: scale(0.97); }
+    .ss-btn svg { flex-shrink: 0; }
+    .ss-btn-primary {
+      background: #0EA5E9; color: #fff !important; font-size: 14px !important;
+    }
+    .ss-btn-primary:hover { background: #0284C7; }
+    .ss-btn-danger {
+      background: #EF4444; color: #fff !important; font-size: 14px !important;
+    }
+    .ss-btn-danger:hover { background: #DC2626; }
+    .ss-btn-ghost {
+      background: transparent; color: #64748B; font-size: 14px !important;
+      border: 1px solid #E2E8F0;
+    }
+    .ss-btn-ghost:hover { background: rgba(14,165,233,0.08); color: #0EA5E9; border-color: rgba(14,165,233,0.25); }
+
+    /* ─── 空状态 ─── */
+    .ss-empty {
+      text-align: center;
+      padding: 48px 20px;
+      animation: ssFadeUp 0.4s var(--ss-enter);
+    }
+    .ss-empty-icon {
+      margin-bottom: 16px;
+      color: var(--ss-muted);
+      opacity: 0.4;
+    }
+    .ss-empty h3 {
+      font-size: 16px; font-weight: 700; margin-bottom: 4px;
+    }
+    .ss-empty p {
+      font-size: 13px; color: var(--ss-muted); line-height: 1.6;
+    }
+    .ss-empty a {
+      color: var(--ss-cyan); text-decoration: none; font-weight: 500;
+    }
+    .ss-empty a:hover { text-decoration: underline; }
+
+    /* ─── 模态框 ─── */
+    .ss-modal {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .ss-modal.open { display: flex; }
+    .ss-modal-box {
+      width: 100%; max-width: 420px;
+      background: #fff;
+      border: 1px solid var(--ss-line);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      padding: 28px;
+      animation: ssFadeUp 0.3s var(--ss-enter);
+    }
+    .ss-modal-box h2 {
+      font-size: 18px; font-weight: 700; margin-bottom: 4px;
+    }
+    .ss-modal-box .desc {
+      color: var(--ss-muted); font-size: 13px; margin-bottom: 20px;
+    }
+    .ss-pwd-display {
+      font-family: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+      font-size: 24px; font-weight: 800;
+      text-align: center;
+      color: var(--ss-green);
+      letter-spacing: 2px;
+      background: var(--ss-green-bg);
+      padding: 14px;
+      border-radius: var(--ss-radius-sm);
+      margin: 16px 0;
+      word-break: break-all;
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+    /* 倒计时提示条 */
+    .ss-pwd-countdown {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ss-amber);
+      margin: -8px 0 12px;
+      min-height: 18px;
+    }
+    .ss-pwd-countdown.urgent { color: var(--ss-red); }
+    /* 倒计时结束后密码区变星号遮罩 */
+    .ss-pwd-display.masked {
+      color: var(--ss-muted);
+      background: var(--ss-line-subtle);
+      border-color: var(--ss-line);
+      letter-spacing: 4px;
+    }
+    .ss-warnBanner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--ss-amber-bg);
+      border: 1px solid var(--ss-amber-border);
+      border-radius: var(--ss-radius-xs);
+      font-size: 12px;
+      line-height: 1.6;
+      color: #92400E;
+      margin-bottom: 20px;
+    }
+    body.theme-dark .ss-warnBanner { color: #FCD34D; }
+    .ss-warnBanner svg { flex-shrink: 0; margin-top: 2px; }
+    .ss-modal-footer {
+      display: flex; gap: 8px;
+    }
+    .ss-modal-footer .ss-btn {
+      flex: 1; justify-content: center;
+      padding: 12px 16px; font-size: 14px;
+      white-space: normal; word-break: keep-all;
+      min-height: 44px;
+    }
+
+    /* ─── Toast ─── */
+    .ss-toast-wrap {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 999; display: flex; flex-direction: column; gap: 8px; align-items: center;
+    }
+    .ss-toast {
+      background: var(--ss-surface);
+      color: var(--ss-ink);
+      border: 1px solid var(--ss-line);
+      padding: 10px 20px;
+      border-radius: var(--ss-radius-sm);
+      font-size: 13px; font-weight: 500;
+      box-shadow: var(--ss-shadow-lg);
+      animation: ssFadeUp 0.25s var(--ss-enter);
+      white-space: pre-wrap;
+      text-align: center;
+      max-width: min(90vw, 440px);
+    }
+    .ss-toast.success { border-left: 3px solid var(--ss-green); }
+    .ss-toast.error { border-left: 3px solid var(--ss-red); }
+
+    /* ─── 欢迎区域 + 功能引导 ─── */
+    .ss-welcome {
+      text-align: center;
+      padding: 8px 0 4px;
+    }
+    .ss-welcome h1 {
+      font-size: 18px; font-weight: 600;
+      color: var(--ss-ink); margin-bottom: 2px;
+      letter-spacing: -0.3px;
+    }
+    .ss-welcome p {
+      font-size: 13px; color: var(--ss-muted);
+      line-height: 1.5;
+    }
+
+    .ss-guide-bar {
+      display: flex; gap: 0;
+      margin: 12px 0 0;
+      background: var(--ss-surface);
+      border: 1px solid var(--ss-line);
+      border-radius: var(--ss-radius-sm);
+      overflow: hidden;
+    }
+    .ss-guide-item {
+      flex: 1;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px;
+      border-right: 1px solid var(--ss-line);
+      font-size: 13px; font-weight: 500;
+      color: var(--ss-muted);
+    }
+    .ss-guide-item:last-child { border-right: 0; }
+    .ss-guide-item svg { flex-shrink: 0; color: var(--ss-cyan); }
+    @media (max-width: 600px) {
+      .ss-guide-bar { flex-direction: column; }
+      .ss-guide-item { border-right: 0; border-bottom: 1px solid var(--ss-line); }
+      .ss-guide-item:last-child { border-bottom: 0; }
+    }
+
+    /* ─── 动画 ─── */
+    @keyframes ssFadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── 管理入口 ─── */
+    .ss-admin-float {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--ss-surface);
+      border: 1px solid var(--ss-line);
+      padding: 8px 14px;
+      border-radius: var(--ss-radius-sm);
+      font-size: 12px;
+      color: var(--ss-muted);
+      text-decoration: none;
+      box-shadow: var(--ss-shadow);
+      z-index: 50;
+      transition: all 0.15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ss-admin-float:hover {
+      color: var(--ss-cyan);
+      border-color: var(--ss-cyan-border);
+      box-shadow: var(--ss-shadow), 0 0 0 3px var(--ss-cyan-ghost);
+    }
+
+    /* ─── 响应式 ─── */
+    @media (max-width: 640px) {
+      .ss-hero { padding: 16px 0 28px; }
+      .ss-hero-title { font-size: 24px; }
+      .ss-search-input { padding: 12px 52px 12px 44px; font-size: 16px; }
+      .ss-card-head { padding: 14px 16px; }
+      .ss-card-body-inner { padding: 0 16px 16px; padding-top: 14px; }
+      .ss-detail-grid { gap: 4px 12px; font-size: 12px; }
+      .ss-actions { flex-direction: column; }
+      .ss-actions .ss-btn { justify-content: center; }
+      .ss-modal-box { padding: 22px; }
+      .ss-pwd-display { font-size: 20px; }
+      .ss-nav-link span { display: none; }
+    }
+
+    /* ─── Reduced motion ─── */
+    @media (prefers-reduced-motion: reduce) {
+      .ss-card, .ss-toast, .ss-modal-box { animation: none; }
+      .ss-skeleton-row { animation: none; opacity: 0.4; }
+      .ss-badge-locked::before { animation: none; }
+    }
+
+    /* ═══ 页面美化重构 ═══ */
+    /* 搜索框美化 */
+    .ss-search-box {
+      border-radius: 16px !important;
+      box-shadow: 0 4px 24px rgba(14,165,233,0.08), 0 1px 3px rgba(0,0,0,0.04) !important;
+      border: 2px solid transparent !important;
+      transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    .ss-search-box:focus-within {
+      border-color: #0EA5E9 !important;
+      box-shadow: 0 4px 24px rgba(14,165,233,0.15), 0 0 0 4px rgba(14,165,233,0.08) !important;
+    }
+    .ss-search-input {
+      font-size: 16px !important;
+      font-weight: 500 !important;
+    }
+    .ss-search-btn {
+      box-shadow: 0 2px 8px rgba(14,165,233,0.25) !important;
+    }
+
+    /* 功能引导条美化 */
+    .ss-guide-bar {
+      gap: 10px !important;
+    }
+    .ss-guide-item {
+      flex: 1;
+      padding: 12px 16px !important;
+      border-radius: 12px !important;
+      background: #fff !important;
+      border: 1px solid #E2E8F0 !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+      transition: all 0.2s !important;
+    }
+    .ss-guide-item:hover {
+      border-color: #0EA5E9 !important;
+      box-shadow: 0 4px 12px rgba(14,165,233,0.1) !important;
+      transform: translateY(-1px);
+    }
+    .ss-guide-item svg { color: #0EA5E9; }
+    .ss-guide-item span { font-weight: 600; font-size: 13px; color: #0F172A; }
+
+    /* 用户卡片美化 */
+    .ss-card {
+      border-radius: 14px !important;
+      border: 1px solid #E2E8F0 !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+      transition: all 0.2s cubic-bezier(0.16,1,0.3,1) !important;
+      overflow: hidden;
+    }
+    .ss-card:hover {
+      border-color: rgba(14,165,233,0.3) !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06), 0 2px 6px rgba(14,165,233,0.06) !important;
+      transform: translateY(-2px);
+    }
+    .ss-card-head {
+      padding: 16px 18px !important;
+    }
+    .ss-card-avatar {
+      width: 44px !important; height: 44px !important;
+      border-radius: 12px !important;
+      font-size: 18px !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 8px rgba(14,165,233,0.15) !important;
+    }
+    .ss-card-name {
+      font-size: 15px !important; font-weight: 700 !important;
+    }
+    .ss-card-acct {
+      font-size: 12px !important; opacity: 0.7 !important;
+    }
+    .ss-card-self {
+      border-color: rgba(14,165,233,0.25) !important;
+      background: transparent !important;
+    }
+
+    /* 详情网格美化 */
+    .ss-detail-grid {
+      padding: 14px 18px !important;
+      background: #F8FAFC !important;
+      border-top: 1px solid #F1F5F9 !important;
+    }
+    .ss-detail-label {
+      font-size: 11px !important; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600 !important;
+    }
+    .ss-detail-value {
+      font-size: 13px !important; font-weight: 500 !important;
+    }
+
+    /* 操作按钮区美化 */
+    .ss-actions {
+      padding: 14px 18px !important;
+      gap: 8px !important;
+      border-top: 1px solid #F1F5F9 !important;
+    }
+    .ss-actions .ss-btn {
+      flex: 1; justify-content: center; padding: 10px 16px !important;
+      font-size: 13px !important; font-weight: 600 !important;
+      border-radius: 10px !important;
+    }
+
+    /* 状态标签美化 */
+    .ss-badge {
+      padding: 3px 10px !important; border-radius: 20px !important;
+      font-size: 11px !important; font-weight: 600 !important;
+    }
+
+    /* 弹窗美化 */
+    .ss-modal-box {
+      border-radius: 20px !important;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06) !important;
+    }
+    .ss-modal-footer {
+      gap: 10px !important; padding-top: 16px !important;
+    }
+    .ss-modal-footer .ss-btn {
+      border-radius: 12px !important;
+      min-height: 48px !important;
+      font-size: 15px !important;
+    }
+
+    /* 密码展示美化 */
+    .ss-pwd-display {
+      font-size: 28px !important; font-weight: 700 !important;
+      letter-spacing: 4px !important;
+      padding: 20px !important;
+      border-radius: 14px !important;
+      background: #F8FAFC !important;
+      border: 2px dashed #CBD5E1 !important;
+      font-family: 'SF Mono', Menlo, monospace !important;
+    }
+
+    /* 空状态美化 */
+    .ss-empty {
+      padding: 60px 24px !important;
+    }
+    .ss-empty h3 {
+      font-size: 18px !important; font-weight: 700 !important; color: #0F172A !important;
+    }
+    .ss-empty p {
+      font-size: 14px !important; color: #64748B !important;
+    }
+
+    /* Toast 美化 */
+    .ss-toast {
+      border-radius: 12px !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
+      font-weight: 500 !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- 身份验证加载遮罩 -->
+  <div id="authOverlay" class="ss-auth-overlay">
+    <!-- 加载态（验证中） -->
+    <div id="authLoading" class="ss-auth-loading">
+      <div class="ss-spinner"></div>
+      <p id="authStatus">正在验证身份...</p>
+    </div>
+    <!-- 登录卡片（飞书未登录时显示） -->
+    <div id="loginCard" class="ss-login-card">
+      <div class="ss-login-logo">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3370FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <h2 class="ss-login-title">域账户自助服务</h2>
+      <p class="ss-login-desc">通过飞书账号安全登录，管理您的域账户</p>
+      <div class="ss-login-features">
+        <div class="ss-login-feature">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>查询域账户状态与个人信息</span>
+        </div>
+        <div class="ss-login-feature">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0"/></svg>
+          <span>自助解锁被锁定的账号</span>
+        </div>
+        <div class="ss-login-feature">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <span>自助重置域账户密码</span>
+        </div>
+      </div>
+      <button id="feishuLoginBtn" class="ss-auth-login-btn" onclick="window.location.href='/api/auth/feishu/login'">
+        <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 8c0 1 7 3.5 14.745 16.744 0 0 4.184-4.363 6.255-5.744 1.5-1 2.712-1.332 2.712-1.332C33.712 15.156 29.5 8 28 8z" fill="#fff" opacity="0.9"/><path d="M43.5 18.5c-1-.667-3.65-1.771-6.5-1.5a15 15 0 0 0-3.288.668S32.5 18 31 19c-2.07 1.38-6.255 5.744-6.255 5.744-1.428 1.397-3.05 2.732-5.245 3.756 0 0 7 3 11.5 3 5.063 0 7-3.5 7-3.5 1.5-3.305 3.5-7 5.5-9.5" fill="#fff" opacity="0.7"/><path d="M4 17.5v17c0 1 6 5.5 15 5.5 10 0 17.05-7.705 19-12 0 0-1.937 3.5-7 3.5-4.5 0-11.5-3-11.5-3-5.117-2.239-10.03-6.577-12.906-9.117C4.974 17.953 4 17.093 4 17.5" fill="#fff"/></svg>
+        飞书登录
+      </button>
+      <div class="ss-login-footer">
+        登录即表示同意使用域账户自助服务<br>
+        遇到问题？请<a href="/admin">联系管理员</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="ss-page" id="ssPage" style="display:none;">
+    <div class="ss-wrap">
+
+      <!-- 导航 -->
+      <nav class="ss-nav" role="navigation" aria-label="自助服务导航">
+        <div class="ss-brand">
+          <div class="ss-brand-icon">AD</div>
+          自助服务
+        </div>
+        <div class="ss-nav-right">
+          <span id="userWelcome" class="ss-user-welcome" style="display:none"></span>
+          <button id="logoutBtn" class="ss-btn ss-btn-ghost ss-logout-btn" style="display:none" onclick="window.__logout()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            退出
+          </button>
+          <a href="/admin" class="ss-nav-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>管理控制台</span>
+          </a>
+        </div>
+      </nav>
+
+      <!-- 欢迎区域 -->
+      <section class="ss-welcome">
+        <h1>域账户自助服务</h1>
+        <p>搜索您的域账户信息，自助解锁账号或重置密码，无需联系管理员</p>
+      </section>
+
+      <!-- 功能引导条 -->
+      <div class="ss-guide-bar">
+        <div class="ss-guide-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>查询账户</span>
+        </div>
+        <div class="ss-guide-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0"/></svg>
+          <span>自助解锁</span>
+        </div>
+        <div class="ss-guide-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <span>重置密码</span>
+        </div>
+      </div>
+
+      <!-- 功能说明 -->
+      <div class="ss-feature-desc" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;">
+        <div style="flex:1;min-width:180px;padding:10px 14px;background:var(--ss-cyan-ghost);border-radius:var(--ss-radius-sm);font-size:12px;color:var(--ss-muted);line-height:1.5;">
+          <strong style="color:var(--ss-cyan);">查询账户</strong><br/>输入姓名或用户名，快速查找域账户信息
+        </div>
+        <div style="flex:1;min-width:180px;padding:10px 14px;background:var(--ss-green-bg);border-radius:var(--ss-radius-sm);font-size:12px;color:var(--ss-muted);line-height:1.5;">
+          <strong style="color:var(--ss-green);">自助解锁</strong><br/>账户被锁定时，可自行解锁恢复登录
+        </div>
+        <div style="flex:1;min-width:180px;padding:10px 14px;background:var(--ss-red-bg);border-radius:var(--ss-radius-sm);font-size:12px;color:var(--ss-muted);line-height:1.5;">
+          <strong style="color:var(--ss-red);">重置密码</strong><br/>忘记密码时可自助重置，新密码需妥善保管
+        </div>
+      </div>
+
+      <!-- 搜索栏（主要功能区） -->
+      <section class="ss-hero" style="padding: 20px 0 8px;">
+        <div class="ss-search-box">
+          <svg class="ss-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="query" class="ss-search-input" placeholder="输入姓名或用户名搜索..." autocomplete="off" />
+          <button type="submit" id="searchBtn" class="ss-search-btn" aria-label="搜索">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </div>
+        <p class="ss-search-hint" style="text-align:center;margin-top:10px;">输入关键词后点击搜索按钮或按回车键查询</p>
+      </section>
+
+      <!-- 加载状态 -->
+      <div id="loader" class="ss-loader">
+        <div class="ss-spinner"></div>
+        <span>正在查询目录...</span>
+      </div>
+
+      <!-- 骨架屏 -->
+      <div id="skeletons" class="ss-results" style="display:none">
+        <div class="ss-skeleton"><div class="ss-skeleton-row"></div><div class="ss-skeleton-row"></div><div class="ss-skeleton-row"></div></div>
+        <div class="ss-skeleton"><div class="ss-skeleton-row"></div><div class="ss-skeleton-row"></div><div class="ss-skeleton-row"></div></div>
+      </div>
+
+      <!-- 结果区域 -->
+      <div id="results" class="ss-results"></div>
+
+    </div>
+  </div>
+
+  <!-- 密码重置模态框 -->
+  <div id="pwdModal" class="ss-modal" role="dialog" aria-modal="true" aria-label="密码重置">
+    <div class="ss-modal-box">
+      <h2>密码重置成功</h2>
+      <p class="desc" id="pwdDesc">请立即复制保存，倒计时结束后密码将隐藏</p>
+      <div class="ss-pwd-display" id="pwdDisplay">------</div>
+      <div class="ss-pwd-countdown" id="pwdCountdown"></div>
+      <div class="ss-warnBanner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>首次登录必须修改密码，请尽快复制保存</span>
+      </div>
+      <!-- 倒计时中：可反复复制 -->
+      <div class="ss-modal-footer" id="pwdFooterActive">
+        <button id="closePwdBtn" class="ss-btn ss-btn-ghost">关闭</button>
+        <button id="copyPwdBtn" class="ss-btn ss-btn-primary">复制密码</button>
+      </div>
+      <!-- 倒计时结束：补救入口 -->
+      <div class="ss-modal-footer" id="pwdFooterExpired" style="display:none; flex-direction:column; gap:8px;">
+        <button id="pwdExpiredClose" class="ss-btn ss-btn-primary" style="width:100%;">已复制，关闭窗口</button>
+        <button id="pwdRegenerate" class="ss-btn ss-btn-danger" style="width:100%;">未复制，重新生成密码</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 确认模态框 -->
+  <div id="confirmModal" class="ss-modal" role="dialog" aria-modal="true" aria-label="操作确认">
+    <div class="ss-modal-box" style="text-align:center">
+      <div id="confirmIcon" style="margin-bottom:12px"></div>
+      <h2 id="confirmTitle"></h2>
+      <p id="confirmDesc" style="color:var(--ss-muted);font-size:13px;margin:8px 0 20px;line-height:1.6"></p>
+      <div class="ss-modal-footer">
+        <button id="confirmCancel" class="ss-btn ss-btn-ghost">取消</button>
+        <button id="confirmOk" class="ss-btn ss-btn-danger">确认操作</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastWrap" class="ss-toast-wrap" role="alert" aria-live="polite"></div>
+
+  <script src="/assets/app.js?v=13"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+# ── 敏感配置 ──
+.env
+.env.*.local
+
+# ── 数据库（运行时生成，不入库）──
+*.db
+*.db-*
+
+# ── 编译产物 ──
+/ad-server
+/ad-server.exe
+/ad-server.*
+*.bak
+
+# ── 日志 ──
+logs/
+*.log
+
+# ── 缓存 ──
+.gocache/
+
+# ── IDE / 编辑器 ──
+.vscode/
+.idea/
+.codebuddy/
+
+# ── WorkBuddy 工作目录（本地记忆/任务，不入库）──
+.workbuddy/
+
+# ── 系统文件 ──
+.DS_Store
+Thumbs.db
+
+# ── 临时文件 ──
+*.tmp
+tmp/

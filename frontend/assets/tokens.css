@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════════════
+   AD Management — Design Tokens
+   统一设计变量，管理端 + 自助端共用
+   参考 DESIGN_SPEC.md
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── 色彩 · Primary (Blue) ─── */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+  --primary-800: #1e40af;
+  --primary-900: #1e3a8a;
+
+  /* ─── 色彩 · Success ─── */
+  --success-50: #ecfdf5;
+  --success-100: #d1fae5;
+  --success-500: #10b981;
+  --success-600: #059669;
+  --success-700: #047857;
+
+  /* ─── 色彩 · Warning ─── */
+  --warning-50: #fffbeb;
+  --warning-100: #fef3c7;
+  --warning-500: #f59e0b;
+  --warning-600: #d97706;
+  --warning-700: #b45309;
+
+  /* ─── 色彩 · Danger ─── */
+  --danger-50: #fef2f2;
+  --danger-100: #fee2e2;
+  --danger-500: #ef4444;
+  --danger-600: #dc2626;
+  --danger-700: #b91c1c;
+
+  /* ─── 色彩 · Neutral (Gray) ─── */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* ─── 语义映射 · 浅色模式 ─── */
+  --bg-base: #ffffff;
+  --bg-subtle: #f9fafb;
+  --bg-muted: #f3f4f6;
+  --bg-surface: #ffffff;
+  --bg-surface-raised: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  --text-default: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #9ca3af;
+  --text-disabled: #d1d5db;
+  --text-inverse: #ffffff;
+
+  --border-subtle: #f3f4f6;
+  --border-default: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  /* ─── 间距 (4px base) ─── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ─── 圆角 (3+1 档) ─── */
+  --radius-sm: 6px;   /* 按钮、输入框、badge */
+  --radius-md: 8px;   /* 卡片、面板 */
+  --radius-lg: 12px;  /* 弹窗、大面板 */
+  --radius-full: 9999px;
+
+  /* ─── 阴影 (3 档) ─── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* ─── 字重 (3 档) ─── */
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* ─── 排版 ─── */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  /* ─── 动画 (2 档 + 1 缓动) ─── */
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --ease: cubic-bezier(0, 0, 0.2, 1); /* ease-out */
+
+  /* ─── Z-Index ─── */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-toast: 1080;
+}
+
+/* ─── 暗色模式 — class 控制，优先于 prefers-color-scheme ─── */
+[data-theme="dark"] {
+  --bg-base: #0f172a;
+  --bg-subtle: #0f172a;
+  --bg-muted: #1e293b;
+  --bg-surface: #1e293b;
+  --bg-surface-raised: #334155;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+
+  --text-default: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-disabled: #334155;
+  --text-inverse: #0f172a;
+
+  --border-subtle: #1e293b;
+  --border-default: #334155;
+  --border-strong: #475569;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   向后兼容别名 — 旧变量名映射到新值
+   内联样式和旧 CSS 引用的变量名在此兼容
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* 旧主色名（indigo → blue，但别名指向新蓝色） */
+  --primary: var(--primary-600);
+  --primary-hover: var(--primary-700);
+  --primary-light: var(--primary-50);
+
+  /* 旧颜色别名 */
+  --accent-50: var(--primary-50);
+  --accent-100: var(--primary-100);
+  --accent-400: var(--primary-400);
+  --accent-500: var(--primary-500);
+  --accent-600: var(--primary-600);
+  --danger: var(--danger-600);
+  --danger-hover: var(--danger-700);
+  --success: var(--success-600);
+  --warning: var(--warning-500);
+  --error-50: var(--danger-50);
+  --error-600: var(--danger-600);
+  --warning-900: #78350F;
+
+  /* 旧中性色别名 */
+  --gray-50: var(--gray-50);
+  --bg: var(--bg-subtle);
+  --panel: var(--bg-surface);
+  --ink: var(--text-default);
+  --muted: var(--text-secondary);
+
+  /* 旧间距别名 */
+  --space-1_5: 6px;
+  --space-2_5: 10px;
+  --space-3_5: 14px;
+  --space-7: 28px;
+  --space-9: 36px;
+
+  /* 旧圆角别名 */
+  --radius: var(--radius-md);
+  --radius-xs: var(--radius-sm);
+  --radius-xl: 16px;   /* 独立值，不再别名到 --radius-lg，保留圆角层级区分 */
+  --radius-2xl: 20px;  /* 独立值 */
+  --radius-lg: var(--radius-lg);
+
+  /* 旧字重别名 */
+  --weight-bold: var(--weight-semibold);
+
+  /* 旧阴影别名 */
+  --shadow-xs: var(--shadow-sm);
+  --shadow-xl: var(--shadow-lg);
+  --shadow-2xl: var(--shadow-lg);
+  --shadow-inner: none;
+
+  /* 旧边框别名 */
+  --line: var(--border-default);
+  --line-subtle: var(--border-subtle);
+
+  /* 旧文本别名 */
+  --text-tertiary: var(--text-tertiary);
+
+  /* 自助端旧变量 */
+  --sidebar-w: 220px;
+  --font-mono: var(--font-mono);
+}
+
+[data-theme="dark"], body.theme-dark {
+  --primary-light: rgba(37, 99, 235, 0.12);
+  --panel: var(--bg-surface);
+  --bg: var(--bg-subtle);
+  --ink: var(--text-default);
+  --muted: var(--text-secondary);
+  --line: var(--border-default);
+  --line-subtle: var(--border-subtle);
+}
