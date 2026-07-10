@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AD 管理控制台</title>
-  <link rel="stylesheet" href="/assets/design-system.css?v=12" />
+  <link rel="stylesheet" href="/assets/design-system.css?v=11" />
   <link rel="stylesheet" href="/assets/tokens.css?v=2" />
-  <link rel="stylesheet" href="/assets/admin-page.css?v=10" />
+  <link rel="stylesheet" href="/assets/admin-page.css?v=9" />
 </head>
 <body data-page="admin">
 
@@ -398,7 +398,6 @@
               <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--text-tertiary);">到 <input type="datetime-local" id="auditEndDate" class="form-input" style="padding: 4px 8px; font-size: 12px; width: 150px;" onchange="resetAuditPage();loadLogs()" /></label>
               <button class="btn btn-ghost btn-sm" onclick="resetAuditPage();loadLogs()" style="font-size: 11px;">查询</button>
             </div>
-            <div id="auditStatsRow" class="audit-stats-row"></div>
             <div id="auditLogs"></div>
             <div id="auditPagination" style="margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;"></div>
             <div id="auditCountSummary" style="margin-top: 8px; font-size: 11px; color: var(--text-tertiary); text-align: right;"></div>

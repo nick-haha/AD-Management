@@ -9,7 +9,7 @@
 # ── 编译产物 ──
 /ad-server
 /ad-server.exe
-/ad-server.*
+/ad-server-*
 *.bak
 
 # ── 日志 ──

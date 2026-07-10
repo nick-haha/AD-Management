@@ -364,18 +364,18 @@ a:hover {
   color: var(--text-default);
 }
 
-/* Danger Button */
-.btn-danger {
-  background: linear-gradient(135deg, var(--danger-500) 0%, var(--danger-600) 100%) !important;
-  color: #fff !important;
-  border-color: var(--danger-600) !important;
+/* Danger Button - 用 .btn.btn-danger 提高特异性，避免 !important */
+.btn.btn-danger {
+  background: linear-gradient(135deg, var(--danger-500) 0%, var(--danger-600) 100%);
+  color: #fff;
+  border-color: var(--danger-600);
 }
 
-.btn-danger:hover {
-  background: linear-gradient(135deg, var(--danger-600) 0%, #b91c1c 100%) !important;
+.btn.btn-danger:hover {
+  background: linear-gradient(135deg, var(--danger-600) 0%, #b91c1c 100%);
   box-shadow: var(--shadow-md), 0 4px 6px rgba(239, 68, 68, 0.3);
   transform: translateY(-1px);
-  color: #fff !important;
+  color: #fff;
 }
 
 /* Success Button */
@@ -1018,16 +1018,7 @@ a:hover {
   100% { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
 }
 
-.user-card {
-  animation: slideInRight 0.4s ease forwards;
-  opacity: 0;
-}
-
-.user-card:nth-child(1) { animation-delay: 0.05s; }
-.user-card:nth-child(2) { animation-delay: 0.1s; }
-.user-card:nth-child(3) { animation-delay: 0.15s; }
-.user-card:nth-child(4) { animation-delay: 0.2s; }
-.user-card:nth-child(5) { animation-delay: 0.25s; }
+/* .user-card 动画已迁移到 admin-page.css 统一管理，避免两处定义冲突 */
 
 .spinner {
   width: 24px;
@@ -1076,125 +1067,7 @@ a:hover {
   border-radius: var(--radius-lg);
 }
 
-.user-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: var(--space-5);
-  padding: var(--space-4) var(--space-6);
-}
-
-.user-card {
-  background: var(--bg-surface);
-  border-radius: var(--radius-xl);
-  padding: 0;
-  cursor: pointer;
-  border: 1px solid var(--border-subtle);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  position: relative;
-  animation: slideInRight 0.4s ease forwards;
-  opacity: 0;
-}
-
-.user-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary-400), var(--accent-400));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.user-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  border-color: var(--primary-200);
-}
-
-.user-card:hover::after {
-  opacity: 1;
-}
-
-.user-card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.user-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-lg);
-  font-weight: var(--weight-bold);
-  flex-shrink: 0;
-}
-
-.user-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-name {
-  font-size: var(--text-base);
-  font-weight: var(--weight-semibold);
-  color: var(--text-default);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: -0.01em;
-}
-
-.user-account {
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
-  margin-top: 2px;
-  font-family: var(--font-mono);
-}
-
-.user-card-body {
-  padding: var(--space-3) var(--space-5) var(--space-4);
-}
-
-.user-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: var(--text-sm);
-  padding: 3px 0;
-}
-
-.meta-label {
-  color: var(--text-tertiary);
-  font-size: var(--text-xs);
-}
-
-.meta-value {
-  color: var(--text-secondary);
-  font-weight: var(--weight-medium);
-}
-
-.meta-value.pwd-ok { color: var(--success-600); }
-.meta-value.pwd-warn { color: var(--warning-600); }
-.meta-value.pwd-bad { color: var(--danger-600); }
-
-.user-card-actions {
-  display: flex;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-5) var(--space-3);
-  border-top: 1px solid var(--border-subtle);
-  background: var(--bg-muted);
-}
+/* .user-grid / .user-card 完整样式已迁移到 admin-page.css 统一管理 */
 
 .pagination {
   display: flex;
@@ -1563,8 +1436,7 @@ a:hover {
 /* Dark Theme */
 [data-theme="dark"] .modal { background: rgba(0, 0, 0, 0.7); }
 .theme-dark .toast { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); }
-.theme-dark .user-card { background: var(--gray-800); border-color: var(--gray-700); }
-.theme-dark .user-card:hover { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); }
+/* .theme-dark .user-card 已迁移到 admin-page.css */
 .theme-dark {
   --bg-base: #0a0a0a;
   --bg-subtle: #111111;
@@ -1764,25 +1636,7 @@ a:hover {
   color: var(--primary-400);
 }
 
-/* Theme Dark - User Card */
-.theme-dark .user-card {
-  background: var(--bg-surface);
-  border-color: var(--border-subtle);
-}
-
-.theme-dark .user-card:hover {
-  border-color: var(--primary-700);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-}
-
-.theme-dark .user-card::after {
-  background: linear-gradient(90deg, var(--primary-500), var(--accent-400));
-}
-
-.theme-dark .user-card-actions {
-  background: var(--bg-muted);
-  border-top-color: var(--border-subtle);
-}
+/* Theme Dark - User Card 已迁移到 admin-page.css */
 
 .theme-dark .user-status-badge.active {
   background: rgba(16, 185, 129, 0.15);

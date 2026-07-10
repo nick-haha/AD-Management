@@ -4,7 +4,7 @@
 import { api } from './api.js';
 import { showToast, openDangerConfirm, escHTML, escJS } from './ui.js';
 import { adTimeToString, pwdExpiryInfo } from './users.js';
-import { formatTime, actionLabel } from './shared.js';
+import { formatTime, actionLabel, avatarGradient } from './shared.js';
 
 let currentDetailAccount = '';
 function getCurrentDetailAccount() { return currentDetailAccount; }
@@ -26,6 +26,8 @@ async function showUserDetail(account) {
     currentDetailAccount = acct;
 
     setText('detailAvatar', acct ? acct[0].toUpperCase() : 'U');
+    const detailAv = document.getElementById('detailAvatar');
+    if (detailAv) detailAv.style.background = avatarGradient(acct);
     setText('detailDisplayName', user.displayName || acct || '-');
     setText('detailBreadcrumbName', user.displayName || acct || '用户详情');
     setText('detailAccount', user.userPrincipalName || acct || '-');

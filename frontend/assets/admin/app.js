@@ -9,7 +9,7 @@ import { loadADSettings, saveWizardSettings, collectADFormData, collectFeishuFor
 import { loadLogs, loadTasks, cancelTask, auditGoPage, resetAuditPage, setAuditFilter, setAuditRefresh, auditDebouncedLoad } from './audit.js';
 import { openAdminMgmtModal, closeAdminMgmtModal, resetCreateAdminForm, applyPresetPerms, renderPermCheckboxes, togglePermLabel, loadAdmins, createAdmin, editAdminPerms, closeEditPermsModal, saveAdminPerms, deleteAdmin, resetAdminPwd } from './admin-mgmt.js';
 import { hasPerm, applyRoleUI, setMyRole, setMyPerms } from './state.js';
-import { genRandomPassword, passwordStrength } from './shared.js';
+import { genRandomPassword, passwordStrength, avatarGradient } from './shared.js';
 
 // ─── 状态 ───
 let resetTarget = '';
@@ -96,7 +96,7 @@ async function tryRestoreSession() {
     initTheme(); applyRoleUI();
     const savedName = localStorage.getItem(USERNAME_KEY) || 'admin';
     const dn = document.querySelector('#dropdownName'); if (dn) dn.textContent = savedName;
-    const av = document.querySelector('#adminAvatar'); if (av) av.textContent = savedName[0].toUpperCase();
+    const av = document.querySelector('#adminAvatar'); if (av) { av.textContent = savedName[0].toUpperCase(); av.style.background = avatarGradient(savedName); }
     if (!settings?.host?.trim()) showSetupWizard();
     loadOptions(); startConnCheck();
   } catch (err) { clearAuth(); }
@@ -303,7 +303,7 @@ function initDOMListeners() {
       const badge = document.querySelector('#adminRoleBadge');
       if (badge) badge.textContent = roleLabels[d.role] || d.role || '管理员';
       const dn = document.querySelector('#dropdownName'); if (dn) dn.textContent = d.username;
-      const av = document.querySelector('#adminAvatar'); if (av) av.textContent = d.username[0].toUpperCase();
+      const av = document.querySelector('#adminAvatar'); if (av) { av.textContent = d.username[0].toUpperCase(); av.style.background = avatarGradient(d.username); }
       applyRoleUI(); await showAdmin(); showToast('欢迎，' + d.username, 'success');
     } catch (err) { showToast(err.message, 'danger'); }
     finally { if (btn) { btn.disabled = false; btn.innerHTML = orig; } }

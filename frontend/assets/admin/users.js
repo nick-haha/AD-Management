@@ -3,6 +3,7 @@
  */
 import { api } from './api.js';
 import { showToast, escHTML, escJS, renderSkeletonCards, renderEmptyState } from './ui.js';
+import { avatarGradient } from './shared.js';
 
 // ─── 状态 ───
 let currentPage = 1;
@@ -122,7 +123,7 @@ function renderUserList() {
 
     html += '<div class="user-card' + (isDisabled ? ' disabled' : '') + '" onclick="showUserDetail(\'' + escJS(acct) + '\')">';
     html += '<div class="user-card-header">';
-    html += '<div class="user-card-avatar">' + escHTML(acct ? acct[0].toUpperCase() : '?') + '</div>';
+    html += '<div class="user-card-avatar" style="background:' + avatarGradient(acct) + '">' + escHTML(acct ? acct[0].toUpperCase() : '?') + '</div>';
     html += '<div class="user-card-info"><div class="user-card-name">' + escHTML(name) + '</div>';
     html += '<div class="user-card-acct">' + escHTML(acct || '-') + '</div></div>';
     html += '<span class="badge ' + (isDisabled ? 'badge-danger' : 'badge-success') + '">' + (isDisabled ? '已禁用' : '正常') + '</span>';

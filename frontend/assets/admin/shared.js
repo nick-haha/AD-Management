@@ -86,4 +86,30 @@ function passwordStrength(pwd) {
   return { score, label: labels[score], color: colors[score] };
 }
 
-export { formatTime, relativeTime, fullTimeStr, actionLabel, ACTION_LABELS, genRandomPassword, passwordStrength };
+// 头像渐变配色：基于用户名 hash 生成稳定的不重复渐变色
+// 返回 CSS background 值（linear-gradient）
+const AVATAR_PALETTES = [
+  ['#667eea', '#764ba2'], // 紫蓝
+  ['#f093fb', '#f5576c'], // 粉红
+  ['#4facfe', '#00f2fe'], // 青蓝
+  ['#43e97b', '#38f9d7'], // 翠绿
+  ['#fa709a', '#fee140'], // 橙粉
+  ['#30cfd0', '#330867'], // 深青紫
+  ['#a8edea', '#5b86e5'], // 薄荷蓝
+  ['#ff9a9e', '#fad0c4'], // 樱花
+  ['#ffecd2', '#fcb69f'], // 暖橙
+  ['#84fab0', '#8fd3f4'], // 春天
+  ['#ff6e7f', '#bfe9ff'], // 珊瑚
+  ['#c471f5', '#fa71cd'], // 霓虹紫
+];
+function avatarGradient(name) {
+  if (!name) return AVATAR_PALETTES[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const pair = AVATAR_PALETTES[Math.abs(hash) % AVATAR_PALETTES.length];
+  return 'linear-gradient(135deg, ' + pair[0] + ', ' + pair[1] + ')';
+}
+
+export { formatTime, relativeTime, fullTimeStr, actionLabel, ACTION_LABELS, genRandomPassword, passwordStrength, avatarGradient };

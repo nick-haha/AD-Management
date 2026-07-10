@@ -55,6 +55,7 @@ async function loadLogs() {
     lastAuditLogs = Array.isArray(data) ? data : (data.logs || []);
     auditTotal = (data && typeof data.total === 'number') ? data.total : lastAuditLogs.length;
     renderLogs();
+    renderAuditStats();
     renderAuditPagination();
   } catch (err) {
     container.innerHTML = '<div class="error-message">加载日志失败: ' + escHTML(err.message) + '</div>';
@@ -88,6 +89,29 @@ function renderAuditPagination() {
   html += '<input type="number" min="1" max="' + totalPages + '" value="' + auditPage + '" style="width:56px;padding:2px 6px;font-size:12px;border:1px solid var(--border-default);border-radius:6px;" onchange="auditGoPage(parseInt(this.value)||1)"/>';
   html += '<span style="font-size:11px;color:var(--text-tertiary);">页</span>';
   el.innerHTML = html;
+}
+
+function renderAuditStats() {
+  const el = document.getElementById('auditStatsRow');
+  if (!el) return;
+  if (auditTotal === 0 && lastAuditLogs.length === 0) { el.innerHTML = ''; return; }
+  var logs = lastAuditLogs || [];
+  var successCount = 0, dangerCount = 0;
+  var actors = {};
+  logs.forEach(function (l) {
+    if (l.success) successCount++;
+    if (/delete|offboard/.test(l.action)) dangerCount++;
+    if (l.actor) actors[l.actor] = true;
+  });
+  var successRate = logs.length > 0 ? Math.round(successCount / logs.length * 1000) / 10 : 100;
+  var activeAdmins = Object.keys(actors).length;
+  var rateClass = successRate >= 95 ? 'stat-success' : (successRate >= 80 ? 'stat-warning' : 'stat-danger');
+  var dangerClass = dangerCount > 0 ? 'stat-danger' : 'stat-success';
+  el.innerHTML =
+    '<div class="audit-stat-card"><span class="audit-stat-label">总操作数</span><span class="audit-stat-num">' + auditTotal + '</span><span class="audit-stat-sub">第 ' + auditPage + ' 页</span></div>' +
+    '<div class="audit-stat-card ' + rateClass + '"><span class="audit-stat-label">成功率</span><span class="audit-stat-num">' + successRate + '%</span><span class="audit-stat-sub">' + successCount + '/' + logs.length + ' 条</span></div>' +
+    '<div class="audit-stat-card"><span class="audit-stat-label">活跃管理员</span><span class="audit-stat-num">' + activeAdmins + '</span><span class="audit-stat-sub">本页统计</span></div>' +
+    '<div class="audit-stat-card ' + dangerClass + '"><span class="audit-stat-label">高危操作</span><span class="audit-stat-num">' + dangerCount + '</span><span class="audit-stat-sub">删除/离职</span></div>';
 }
 
 function renderLogs() {

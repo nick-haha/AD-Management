@@ -314,10 +314,10 @@
       background: transparent;
     }
     
-    .theme-btn.active { 
-      background: var(--bg-surface) !important; 
+    .theme-switch .theme-btn.active { 
+      background: var(--bg-surface); 
       opacity: 1; 
-      color: var(--primary-600) !important; 
+      color: var(--primary-600); 
       box-shadow: var(--shadow-xs), 0 1px 3px rgba(0,0,0,0.08);
     }
     
@@ -1668,3 +1668,201 @@
 /* ═══ 密码查看按钮加大尺寸 ═══ */
 .pwd-toggle { width: 32px !important; height: 32px !important; }
 .pwd-toggle svg { width: 18px; height: 18px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   前端美化增强 v1 — 2026-07-10
+   骨架屏shimmer / 滚动条 / 数字等宽 / 空状态动画 / Toast倒计时
+   Tab指示器 / 暗色对比度 / 头像渐变 / 审计统计卡 / user-card动画补回
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── 1. user-card 入场动画（从 design-system.css 迁移） ─── */
+.user-card {
+  animation: fadeUp 0.4s var(--ease-out) backwards;
+}
+.user-card:nth-child(1) { animation-delay: 0.05s; }
+.user-card:nth-child(2) { animation-delay: 0.10s; }
+.user-card:nth-child(3) { animation-delay: 0.15s; }
+.user-card:nth-child(4) { animation-delay: 0.20s; }
+.user-card:nth-child(5) { animation-delay: 0.25s; }
+.user-card:nth-child(6) { animation-delay: 0.30s; }
+.user-card:nth-child(n+7) { animation-delay: 0.35s; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── 2. 骨架屏 shimmer 光泽流动 ─── */
+.skeleton-card,
+.skeleton-line,
+.skeleton-avatar {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-card::after,
+.skeleton-line::after,
+.skeleton-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+  animation: shimmer 1.5s infinite;
+  pointer-events: none;
+}
+[data-theme="dark"] .skeleton-card::after,
+[data-theme="dark"] .skeleton-line::after,
+[data-theme="dark"] .skeleton-avatar::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card::after, .skeleton-line::after, .skeleton-avatar::after { animation: none; }
+}
+
+/* ─── 3. 自定义滚动条 ─── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong, var(--gray-300));
+  border-radius: var(--radius-full, 9999px);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary, var(--gray-400));
+  background-clip: content-box;
+}
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong, var(--gray-300)) transparent; }
+
+/* ─── 4. 数字等宽对齐 ─── */
+.log-col-time,
+.log-col-ip,
+.page-info,
+.admin-row-sub,
+.task-detail-value,
+.detail-value,
+.audit-stat-num,
+.audit-count-summary {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* ─── 5. 空状态微动画 ─── */
+.empty-state svg {
+  animation: floatY 3s ease-in-out infinite;
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .empty-state svg { animation: none; }
+}
+
+/* ─── 6. Toast 倒计时进度条 ─── */
+.toast {
+  position: relative;
+  overflow: hidden;
+}
+.toast::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: toastBar var(--toast-duration, 4000ms) linear forwards;
+}
+@keyframes toastBar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* ─── 7. Tab 滑动指示器（侧边栏 active 项） ─── */
+.sidebar-item::before {
+  transition: height var(--duration-200, 200ms) var(--ease-spring, cubic-bezier(0.175,0.885,0.32,1.275));
+}
+.sidebar-item:not(.active)::before {
+  height: 0 !important;
+}
+
+/* ─── 8. 暗色模式对比度修复 ─── */
+[data-theme="dark"] {
+  --text-tertiary: #9ca3af;
+  --border-subtle: #27272a;
+}
+.theme-dark {
+  --text-tertiary: #9ca3af;
+  --border-subtle: #27272a;
+}
+
+/* ─── 9. 头像渐变配色容器 ─── */
+.user-card-avatar[data-gradient],
+.detail-avatar[data-gradient],
+.admin-row-avatar[data-gradient] {
+  color: #fff;
+}
+
+/* ─── 10. 审计统计卡片 ─── */
+.audit-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.audit-stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 8px);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  transition: all var(--duration-200, 200ms) var(--ease-out, ease);
+}
+.audit-stat-card:hover {
+  border-color: var(--primary-300, var(--primary-200));
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+  transform: translateY(-2px);
+}
+.audit-stat-label {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-tertiary);
+  font-weight: var(--weight-medium, 500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.audit-stat-num {
+  font-size: var(--text-2xl, 24px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--text-default);
+  line-height: 1.2;
+}
+.audit-stat-sub {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-tertiary);
+}
+.audit-stat-card.stat-danger .audit-stat-num { color: var(--danger-600, #dc2626); }
+.audit-stat-card.stat-success .audit-stat-num { color: var(--success-600, #059669); }
+.audit-stat-card.stat-warning .audit-stat-num { color: var(--warning-600, #d97706); }
+
+/* ─── 11. focus-visible 优雅焦点环 ─── */
+:focus-visible {
+  outline: 2px solid var(--primary-500, #3b82f6);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ─── 12. 选中文本颜色定制 ─── */
+::selection {
+  background: var(--primary-100, #dbeafe);
+  color: var(--primary-900, #1e3a8a);
+}
+[data-theme="dark"] ::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: #f1f5f9;
+}

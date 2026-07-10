@@ -19,6 +19,7 @@ function showToast(msg, type = 'info', duration = 4000) {
   if (msgEl) msgEl.textContent = msg;
   container.appendChild(toast);
   toast.style.animation = 'slideInRight 0.3s ease-out';
+  toast.style.setProperty('--toast-duration', duration + 'ms');
   setTimeout(function () {
     toast.style.animation = 'fadeOut 0.3s ease-out forwards';
     setTimeout(function () { toast.remove(); }, 300);

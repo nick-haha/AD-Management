@@ -4,6 +4,7 @@
 import { api, USERNAME_KEY } from './api.js';
 import { showToast, openDangerConfirm, escHTML, escJS, renderSkeletonCards } from './ui.js';
 import { ALL_PERMS, ROLE_PERMS, hasPerm } from './state.js';
+import { avatarGradient } from './shared.js';
 
 const ROLE_LABELS = { super_admin: '超级管理员', hr_admin: 'HR管理员', helpdesk: '服务台', custom: '自定义' };
 
@@ -91,7 +92,7 @@ async function loadAdmins() {
       const roleLabel = (a.permissions && a.permissions.length > 0 && a.role === 'custom') ? '自定义' : (ROLE_LABELS[a.role] || a.role);
       const roleClass = a.role === 'super_admin' ? 'badge-super' : (a.role === 'hr_admin' ? 'badge-hr' : (a.role === 'helpdesk' ? 'badge-helpdesk' : 'badge-custom'));
       html += '<div class="admin-row' + (isSelf ? ' admin-row-self' : '') + '">';
-      html += '<div class="admin-row-avatar">' + escHTML((a.username[0] || 'A').toUpperCase()) + '</div>';
+      html += '<div class="admin-row-avatar" style="background:' + avatarGradient(a.username) + '">' + escHTML((a.username[0] || 'A').toUpperCase()) + '</div>';
       html += '<div class="admin-row-info"><div class="admin-row-name">' + escHTML(a.username) + (isSelf ? ' <span class="admin-self-tag">你</span>' : '') + '</div>';
       html += '<div class="admin-row-sub">ID #' + (a.id || '-') + ' · ' + effectivePerms.length + ' 项权限</div></div>';
       html += '<span class="admin-role-badge ' + roleClass + '">' + escHTML(roleLabel) + '</span>';
