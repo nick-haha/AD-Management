@@ -15,6 +15,15 @@ type Config struct {
 	AD        ADConfig
 	Feishu    FeishuConfig
 	Bootstrap BootstrapConfig
+	Security  SecurityConfig
+}
+
+// SecurityConfig 安全相关配置。
+type SecurityConfig struct {
+	// CredentialEncKey 凭据字段级加密密钥（base64 编码的 32 字节）。
+	// 用于加密 DB 中的 AD bindPassword 与飞书 appSecret。
+	// 为空时降级为明文模式（不加密，仅向后兼容）。
+	CredentialEncKey string
 }
 
 type FeishuConfig struct {
@@ -99,6 +108,9 @@ func Load() (Config, error) {
 			AppSecret:       env("FEISHU_APP_SECRET", ""),
 			RedirectURI:     env("FEISHU_REDIRECT_URI", ""),
 			SessionDuration: envDuration("SELF_SERVICE_SESSION_DURATION", 8*time.Hour),
+		},
+		Security: SecurityConfig{
+			CredentialEncKey: env("AD_CRED_ENC_KEY", ""),
 		},
 	}
 	return cfg, nil

@@ -16,6 +16,7 @@ import (
 	"ad-management/internal/api"
 	"ad-management/internal/config"
 	"ad-management/internal/feishu"
+	"ad-management/internal/security"
 	"ad-management/internal/store"
 
 	"golang.org/x/crypto/bcrypt"
@@ -66,6 +67,26 @@ func main() {
 	}
 	defer db.Close()
 	logger.Info("database opened", "path", cfg.DB.Path)
+
+	// 加载凭据加密密钥（方案 B：字段级 AES-256-GCM 加密）
+	cipher, err := security.NewCredentialCipher(cfg.Security.CredentialEncKey)
+	if err != nil {
+		logger.Error("init credential cipher failed", "error", err)
+		os.Exit(1)
+	}
+	db.SetCipher(cipher)
+	if cipher.Enabled() {
+		logger.Info("credential encryption enabled")
+		// 启动迁移：把存量明文凭据（bindPassword/appSecret）加密回写
+		if n, mErr := db.EnsureEncrypted(context.Background()); mErr != nil {
+			logger.Error("encrypt existing credentials failed", "error", mErr)
+			os.Exit(1)
+		} else if n > 0 {
+			logger.Info("migrated plaintext credentials to encrypted", "count", n)
+		}
+	} else {
+		logger.Warn("credential encryption NOT enabled (AD_CRED_ENC_KEY unset); sensitive credentials stored as plaintext. Set AD_CRED_ENC_KEY to enable.")
+	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.Bootstrap.AdminPassword), bcrypt.DefaultCost)
 	if err != nil {

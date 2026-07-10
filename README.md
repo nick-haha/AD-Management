@@ -271,6 +271,9 @@ go run ./cmd/server
 | 环境变量 | 默认值 | 说明 |
 |---|---|---|
 | `AD_DELETE_PROTECTED_ACCOUNTS` | — | 禁止删除的保护账号，逗号分隔，如 `administrator,krbtgt` |
+| `AD_CRED_ENC_KEY` | — | 凭据加密密钥（base64 编码 32 字节）。启用后 DB 中的 AD bindPassword 与飞书 appSecret 以 AES-256-GCM 密文存储。留空则明文模式。生成：`openssl rand -base64 32` |
+
+> ⚠️ **`AD_CRED_ENC_KEY` 密钥管理**：密钥丢失后已加密的凭据无法解密，需在管理控制台重新配置域控与飞书密码。请将密钥妥善备份（如密码管理器），不要与数据库文件存放在一起。
 
 ### 飞书 OAuth 配置
 
@@ -440,6 +443,20 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ad-server.e
 
 > `-ldflags="-s -w"` 去除调试信息，二进制体积可减小约 30%。
 > `CGO_ENABLED=0` 确保纯静态链接，无外部 C 库依赖。
+
+> ⚠️ **必须为目标平台编译（重要）**：二进制**不能跨操作系统运行**。在 macOS / Windows 上编译出的 `ad-server` 直接拷到 Linux 服务器会报 `cannot execute binary file: Exec format error`。请**在开发机交叉编译目标平台版本**（见上方 `GOOS`/`GOARCH`），或直接在目标服务器上 `go build`。
+>
+> 先确认服务器架构再选对应命令：
+> ```bash
+> uname -m          # x86_64 → amd64；aarch64 → arm64
+> file ad-server   # 分发前确认是 ELF（Linux）而非 Mach-O（macOS）
+> ```
+> 推荐的交叉编译产物命名（避免混淆）：
+> ```bash
+> CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ad-server-linux-amd64 ./cmd/server
+> CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ad-server-linux-arm64 ./cmd/server
+> # 传上服务器后重命名为 ad-server 并 chmod +x
+> ```
 
 编译产物 `ad-server`（约 10-15 MB）连同 `frontend/` 目录一起分发即可。
 
@@ -816,6 +833,7 @@ POST /api/admin/users/password
 ## 安全说明
 
 - **密码重置走 LDAPS**：重置密码强制使用 LDAPS（636 端口），要求域控配置有效证书。默认 TLS 1.2+。
+- **凭据字段级加密**：AD bindPassword 与飞书 appSecret 在数据库中以 **AES-256-GCM 密文**存储（配置 `AD_CRED_ENC_KEY` 后生效）。密钥从环境变量读取，与数据库文件物理分离；单独拿到 `.db` 文件无法还原密码。服务启动时自动把存量明文凭据迁移为密文。
 - **域控密码不回传**：`GET /api/admin/ad-settings` 返回时清空 `bindPassword`。
 - **飞书 Secret 不回传**：`GET /api/admin/feishu-settings` 返回时清空 `appSecret`。
 - **登录锁定**：连续 5 次密码错误锁定 30 分钟。

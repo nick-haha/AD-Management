@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"ad-management/internal/security"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -31,7 +33,13 @@ func sqliteTimeUTC(t time.Time) string {
 }
 
 type Store struct {
-	db *sql.DB
+	db     *sql.DB
+	cipher *security.CredentialCipher // 凭据字段级加解密器（nil=明文模式）
+}
+
+// SetCipher 注入凭据加解密器。应在 Open 后、业务调用前执行。
+func (s *Store) SetCipher(c *security.CredentialCipher) {
+	s.cipher = c
 }
 
 type Admin struct {
@@ -723,12 +731,23 @@ func (s *Store) GetADSettings(ctx context.Context) (ADSettings, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return ADSettings{}, ErrNotFound
 	}
+	if err != nil {
+		return settings, err
+	}
 	if settings.PasswordMaxAgeDays == 0 {
 		settings.PasswordMaxAgeDays = 90
 	}
 	settings.UseTLS = useTLS == 1
 	settings.InsecureSkipVerify = insecure == 1
-	return settings, err
+	// 解密 bindPassword（兼容旧明文）
+	if settings.BindPassword != "" && s.cipher != nil {
+		dec, derr := s.cipher.Decrypt(settings.BindPassword)
+		if derr != nil {
+			return settings, derr
+		}
+		settings.BindPassword = dec
+	}
+	return settings, nil
 }
 
 func (s *Store) SaveADSettings(ctx context.Context, settings ADSettings) error {
@@ -737,6 +756,15 @@ func (s *Store) SaveADSettings(ctx context.Context, settings ADSettings) error {
 	}
 	if settings.PasswordMaxAgeDays == 0 {
 		settings.PasswordMaxAgeDays = 90
+	}
+	// 加密 bindPassword（明文 → 密文存储）
+	bindPwd := settings.BindPassword
+	if s.cipher != nil && bindPwd != "" {
+		enc, err := s.cipher.Encrypt(bindPwd)
+		if err != nil {
+			return err
+		}
+		bindPwd = enc
 	}
 	_, err := s.db.ExecContext(ctx, `
 	INSERT INTO ad_settings (
@@ -769,7 +797,7 @@ func (s *Store) SaveADSettings(ctx context.Context, settings ADSettings) error {
 		settings.UserOU,
 		settings.DisabledOU,
 		settings.BindUsername,
-		settings.BindPassword,
+		bindPwd,
 		settings.DomainNetBIOS,
 		settings.DomainUPNSuffix,
 		settings.OUOptions,
@@ -933,8 +961,19 @@ func (s *Store) GetFeishuSettings(ctx context.Context) (FeishuSettings, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return FeishuSettings{SessionDurationHours: 8}, nil
 	}
+	if err != nil {
+		return settings, err
+	}
 	settings.Enabled = enabled == 1
-	return settings, err
+	// 解密 appSecret（兼容旧明文）
+	if settings.AppSecret != "" && s.cipher != nil {
+		dec, derr := s.cipher.Decrypt(settings.AppSecret)
+		if derr != nil {
+			return settings, derr
+		}
+		settings.AppSecret = dec
+	}
+	return settings, nil
 }
 
 // GetFeishuSettingsRaw 读取飞书配置（含 secret），供认证流程使用。
@@ -955,6 +994,15 @@ func (s *Store) SaveFeishuSettings(ctx context.Context, settings FeishuSettings)
 			settings.AppSecret = current.AppSecret
 		}
 	}
+	// 加密 appSecret（明文 → 密文存储）
+	appSecret := settings.AppSecret
+	if s.cipher != nil && appSecret != "" {
+		enc, err := s.cipher.Encrypt(appSecret)
+		if err != nil {
+			return err
+		}
+		appSecret = enc
+	}
 	_, err := s.db.ExecContext(ctx, `
 	INSERT INTO feishu_settings (id, app_id, app_secret, redirect_uri, enabled, session_duration_hours, updated_at)
 	VALUES (1, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -966,10 +1014,50 @@ func (s *Store) SaveFeishuSettings(ctx context.Context, settings FeishuSettings)
 		session_duration_hours = excluded.session_duration_hours,
 		updated_at = CURRENT_TIMESTAMP`,
 		settings.AppID,
-		settings.AppSecret,
+		appSecret,
 		settings.RedirectURI,
 		boolInt(settings.Enabled),
 		settings.SessionDurationHours,
 	)
 	return err
+}
+
+// EnsureEncrypted 启动迁移：把存量明文凭据加密回写。
+// 仅在 cipher 已启用时执行；识别明文依据"非 enc:v1: 前缀且非空"。
+// 返回迁移的字段数量。调用方应在服务启动时（业务请求进入前）调用一次。
+func (s *Store) EnsureEncrypted(ctx context.Context) (int, error) {
+	if s.cipher == nil || !s.cipher.Enabled() {
+		return 0, nil // 未启用加密，跳过
+	}
+	migrated := 0
+
+	// ad_settings.bind_password
+	var bindPwd string
+	err := s.db.QueryRowContext(ctx, `SELECT bind_password FROM ad_settings WHERE id = 1`).Scan(&bindPwd)
+	if err == nil && bindPwd != "" && !security.IsEncrypted(bindPwd) {
+		enc, err := s.cipher.Encrypt(bindPwd)
+		if err != nil {
+			return migrated, err
+		}
+		if _, err := s.db.ExecContext(ctx, `UPDATE ad_settings SET bind_password = ? WHERE id = 1`, enc); err != nil {
+			return migrated, err
+		}
+		migrated++
+	}
+
+	// feishu_settings.app_secret
+	var appSecret string
+	err = s.db.QueryRowContext(ctx, `SELECT app_secret FROM feishu_settings WHERE id = 1`).Scan(&appSecret)
+	if err == nil && appSecret != "" && !security.IsEncrypted(appSecret) {
+		enc, err := s.cipher.Encrypt(appSecret)
+		if err != nil {
+			return migrated, err
+		}
+		if _, err := s.db.ExecContext(ctx, `UPDATE feishu_settings SET app_secret = ? WHERE id = 1`, enc); err != nil {
+			return migrated, err
+		}
+		migrated++
+	}
+
+	return migrated, nil
 }
