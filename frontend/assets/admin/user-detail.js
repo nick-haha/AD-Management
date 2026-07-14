@@ -189,7 +189,7 @@ async function doDeleteUser(account) {
     warning: '此操作不可逆！删除后账号将无法恢复，所有数据将丢失。', confirmText: '确认删除',
     onConfirm: async function () {
       try {
-        await api('/api/admin/users/delete', { method: 'POST', body: JSON.stringify({ account }) });
+        await api('/api/admin/users?account=' + encodeURIComponent(account), { method: 'DELETE' });
         showToast('已删除', 'success');
         closeUserDetail();
         window.searchUsers();
