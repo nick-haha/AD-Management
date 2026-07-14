@@ -99,7 +99,8 @@ func (s *Server) saveFeishuSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.store.SaveFeishuSettings(r.Context(), settings); err != nil {
-		writeJSON(w, http.StatusInternalServerError, errorResponse{Error: "feishu_settings_save_failed"})
+		s.logger.Error("save feishu settings failed", "error", err, "appId", settings.AppID, "redirectUri", settings.RedirectURI)
+		writeJSON(w, http.StatusInternalServerError, errorResponse{Error: "feishu_settings_save_failed: " + err.Error()})
 		return
 	}
 
