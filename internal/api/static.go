@@ -66,7 +66,9 @@ func newEmbedHandler(root fs.FS) http.Handler {
 			return
 		}
 		if path == "/" {
-			r.URL.Path = "/index.html"
+			// 不改写成 /index.html——http.FileServer 对 /index.html 会 301 重定向回 /，
+			// 造成「/ → /index.html → 301 / → ...」循环，首页打不开。
+			// 直接让 FileServer 处理 /，它会返回 index.html 且不重定向。
 			files.ServeHTTP(w, r)
 			return
 		}
