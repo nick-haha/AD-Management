@@ -284,16 +284,25 @@ async function detectScope(type, form, targetName, title) {
   if (!form) return;
   const targetInput = form.querySelector('input[name="' + targetName + '"]');
   if (!targetInput) return;
+  // 前置校验：域控地址必须填写
+  const hostInput = form.querySelector('input[name="host"]');
+  if (!hostInput || !hostInput.value.trim()) {
+    showToast('请先填写域控地址', 'warning');
+    hostInput?.focus();
+    return;
+  }
   const baseInput = form.querySelector('input[name="baseDN"]');
   const base = baseInput ? baseInput.value.trim() : '';
-  const url = '/api/admin/' + type + (base ? '?base=' + encodeURIComponent(base) : '');
+  // 用当前表单填的临时配置检测（无需先保存即可读取域控 OU/组）
+  const data = collectADFormData(form);
+  const url = '/api/admin/' + type + '/discover' + (base ? '?base=' + encodeURIComponent(base) : '');
   showToast('正在从域控检测…', 'info');
   let entries;
   try {
-    entries = await api(url);
+    entries = await api(url, { method: 'POST', body: JSON.stringify(data) });
   } catch (e) {
     const msg = (e && e.message) ? e.message : '';
-    showToast('检测失败' + (msg ? '：' + msg : '，请确认 AD 已配置并连接'), 'danger');
+    showToast('检测失败' + (msg ? '：' + msg : '，请确认域控地址/账号/密码正确'), 'danger');
     return;
   }
   const list = Array.isArray(entries) ? entries : (entries[type] || []);

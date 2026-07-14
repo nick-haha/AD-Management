@@ -83,6 +83,9 @@ func NewRouter(deps Dependencies) http.Handler {
 	mux.Handle("GET /api/admin/ad-settings/connectivity", server.adminOnly([]string{store.PermSearch, store.PermADSettings}, server.checkADConnectivity))
 	mux.Handle("GET /api/admin/ous", server.adminOnly([]string{store.PermCreate}, server.discoverOUs))
 	mux.Handle("GET /api/admin/groups", server.adminOnly([]string{store.PermCreate, store.PermAddGroup}, server.discoverGroups))
+	// 用当前表单填的临时 AD 配置 discover OU/组（向导/设置页「检测」按钮用，无需先保存配置）
+	mux.Handle("POST /api/admin/ous/discover", server.adminOnly([]string{store.PermADSettings, store.PermCreate}, server.discoverOUsWithConfig))
+	mux.Handle("POST /api/admin/groups/discover", server.adminOnly([]string{store.PermADSettings, store.PermCreate, store.PermAddGroup}, server.discoverGroupsWithConfig))
 	mux.Handle("GET /api/admin/users", server.adminOnly([]string{store.PermSearch}, server.findUser))
 	mux.Handle("POST /api/admin/users", server.adminOnly([]string{store.PermCreate}, server.createUser))
 	mux.Handle("DELETE /api/admin/users", server.adminOnly([]string{store.PermDelete}, server.deleteUser))
@@ -494,6 +497,54 @@ func (s *Server) discoverOUs(w http.ResponseWriter, r *http.Request) {
 func (s *Server) discoverGroups(w http.ResponseWriter, r *http.Request) {
 	baseDN := strings.TrimSpace(r.URL.Query().Get("base"))
 	entries, err := s.ad.DiscoverGroups(r.Context(), baseDN)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, entries)
+}
+
+// discoverOUsWithConfig 用请求体里的临时 AD 配置创建 client 并 discover OU，
+// 供向导/设置页「检测」按钮使用——无需先保存配置即可读取域控 OU 列表。
+func (s *Server) discoverOUsWithConfig(w http.ResponseWriter, r *http.Request) {
+	var req store.ADSettings
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	if strings.TrimSpace(req.BindPassword) == "" {
+		// 密码留空（设置页编辑场景）：回退用已保存的密码
+		if current, err := s.store.GetADSettings(r.Context()); err == nil {
+			req.BindPassword = current.BindPassword
+		}
+	}
+	client := ad.NewClient(adConfigFromSettings(req), s.logger)
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	baseDN := strings.TrimSpace(r.URL.Query().Get("base"))
+	entries, err := client.DiscoverOUs(ctx, baseDN)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, entries)
+}
+
+// discoverGroupsWithConfig 同上，discover 安全组列表。
+func (s *Server) discoverGroupsWithConfig(w http.ResponseWriter, r *http.Request) {
+	var req store.ADSettings
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+	if strings.TrimSpace(req.BindPassword) == "" {
+		if current, err := s.store.GetADSettings(r.Context()); err == nil {
+			req.BindPassword = current.BindPassword
+		}
+	}
+	client := ad.NewClient(adConfigFromSettings(req), s.logger)
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	baseDN := strings.TrimSpace(r.URL.Query().Get("base"))
+	entries, err := client.DiscoverGroups(ctx, baseDN)
 	if err != nil {
 		writeError(w, err)
 		return
