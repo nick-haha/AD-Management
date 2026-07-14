@@ -678,6 +678,19 @@
     </div>
   </div>
 
+  <!-- Scope Picker Modal（OU/组检测选择）-->
+  <div id="scopePickerModal" class="modal" role="dialog" aria-modal="true" aria-label="选择条目" style="z-index: 1070;">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="scopePickerTitle">选择</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto; padding: var(--space-4) var(--space-5);">
+        <div id="scopePickerList"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Undo Toast -->
 <button class="btn btn-ghost btn-sm" id="undoBtn">撤销</button>
     </div>
@@ -841,6 +854,6 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- ES Module 入口（替代旧 admin.js）-->
-  <script type="module" src="/assets/admin/app.js?v=39"></script>
+  <script type="module" src="/assets/admin/app.js?v=40"></script>
 </body>
 </html>

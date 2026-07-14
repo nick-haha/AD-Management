@@ -2,7 +2,7 @@
  * Settings 模块 — AD/飞书设置 + 向导 + 选项加载
  */
 import { api } from './api.js';
-import { showToast, escHTML } from './ui.js';
+import { showToast, escHTML, openModal, closeModal } from './ui.js';
 
 let adConfigured = false;
 let adTestPassed = false;
@@ -278,11 +278,71 @@ function fillBaseDefaults() {
   if (bindInput && !bindInput.value) bindInput.value = 'admin@example.com';
 }
 
+// ─── OU/组 检测（设置页与向导共用）───
+// type: 'ous' | 'groups'；form: 所属表单元素；targetName: 选中后回填的 input name；title: 弹窗标题
+async function detectScope(type, form, targetName, title) {
+  if (!form) return;
+  const targetInput = form.querySelector('input[name="' + targetName + '"]');
+  if (!targetInput) return;
+  const baseInput = form.querySelector('input[name="baseDN"]');
+  const base = baseInput ? baseInput.value.trim() : '';
+  const url = '/api/admin/' + type + (base ? '?base=' + encodeURIComponent(base) : '');
+  showToast('正在从域控检测…', 'info');
+  let entries;
+  try {
+    entries = await api(url);
+  } catch (e) {
+    const msg = (e && e.message) ? e.message : '';
+    showToast('检测失败' + (msg ? '：' + msg : '，请确认 AD 已配置并连接'), 'danger');
+    return;
+  }
+  const list = Array.isArray(entries) ? entries : (entries[type] || []);
+  if (!list || list.length === 0) { showToast('未检测到可选项', 'info'); return; }
+  const titleEl = document.getElementById('scopePickerTitle');
+  if (titleEl) titleEl.textContent = title;
+  const listEl = document.getElementById('scopePickerList');
+  if (!listEl) { showToast('选择弹窗未就绪', 'danger'); return; }
+  listEl.innerHTML = '';
+  list.forEach(function (item) {
+    const val = item.value || item.dn || '';
+    const label = item.label || item.name || val;
+    const desc = item.description || '';
+    const row = document.createElement('div');
+    row.className = 'scope-picker-item';
+    row.style.cssText = 'padding:10px 14px;border:1px solid var(--border-default);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer;background:var(--bg-surface);transition:all .15s;';
+    row.onmouseenter = function () { row.style.borderColor = 'var(--primary-500, #6366f1)'; row.style.background = 'var(--bg-muted)'; };
+    row.onmouseleave = function () { row.style.borderColor = 'var(--border-default)'; row.style.background = 'var(--bg-surface)'; };
+    const lbl = document.createElement('div');
+    lbl.textContent = label;
+    lbl.style.cssText = 'font-weight:600;color:var(--text-default);font-size:14px;';
+    row.appendChild(lbl);
+    if (val && val !== label) {
+      const v = document.createElement('div');
+      v.textContent = val;
+      v.style.cssText = 'font-size:12px;color:var(--text-tertiary);margin-top:2px;word-break:break-all;';
+      row.appendChild(v);
+    }
+    if (desc) {
+      const d = document.createElement('div');
+      d.textContent = desc;
+      d.style.cssText = 'font-size:12px;color:var(--text-secondary);margin-top:2px;';
+      row.appendChild(d);
+    }
+    row.addEventListener('click', function () {
+      targetInput.value = val;
+      closeModal();
+      showToast('已选择：' + label, 'success');
+    });
+    listEl.appendChild(row);
+  });
+  openModal('scopePickerModal');
+}
+
 export {
   loadADSettings, saveWizardSettings, collectADFormData, collectFeishuFormData,
   updateConnStatus, startConnCheck,
   loadFeishuSettings, saveFeishuSettings,
   loadOptions, showSetupWizard, hideSetupWizard, fillWizOptionalExample,
   setFormValue, toggleOptional, fillOptionalDefaults, fillBaseDefaults,
-  getAdConfigured,
+  getAdConfigured, detectScope,
 };

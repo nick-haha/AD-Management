@@ -5,7 +5,7 @@ import { api, getToken, clearAuth, onAuthExpired, TOKEN_KEY, USERNAME_KEY, ROLE_
 import { showToast, openModal, closeModal, applyTheme, initTheme, cycleTheme, openDangerConfirm, closeDangerConfirm, escHTML, escAttr, escJS, html, raw, capitalize, validateField, clearFieldError } from './ui.js';
 import { searchUsers, prevPage, nextPage } from './users.js';
 import { showUserDetail, closeUserDetail, doUnlock, doEnable, doDisable, doOffboard, doDeleteUser, getCurrentDetailAccount } from './user-detail.js';
-import { loadADSettings, saveWizardSettings, collectADFormData, collectFeishuFormData, startConnCheck, loadFeishuSettings, saveFeishuSettings, loadOptions, showSetupWizard, hideSetupWizard, fillOptionalDefaults, fillBaseDefaults } from './settings.js';
+import { loadADSettings, saveWizardSettings, collectADFormData, collectFeishuFormData, startConnCheck, loadFeishuSettings, saveFeishuSettings, loadOptions, showSetupWizard, hideSetupWizard, fillOptionalDefaults, fillBaseDefaults, detectScope } from './settings.js';
 import { loadLogs, loadTasks, cancelTask, auditGoPage, resetAuditPage, setAuditFilter, setAuditRefresh, auditDebouncedLoad } from './audit.js';
 import { openAdminMgmtModal, closeAdminMgmtModal, resetCreateAdminForm, applyPresetPerms, renderPermCheckboxes, togglePermLabel, loadAdmins, createAdmin, editAdminPerms, closeEditPermsModal, saveAdminPerms, deleteAdmin, resetAdminPwd } from './admin-mgmt.js';
 import { hasPerm, applyRoleUI, setMyRole, setMyPerms } from './state.js';
@@ -335,6 +335,24 @@ function initDOMListeners() {
   });
   document.getElementById('fillBaseDefaults')?.addEventListener('click', fillBaseDefaults);
   document.getElementById('fillOptionalDefaults')?.addEventListener('click', e => { e.stopPropagation(); fillOptionalDefaults(); });
+
+  // OU/组 检测按钮（设置页 + 向导共用 detectScope）
+  // [按钮id, type, 表单id, 回填input name, 弹窗标题]
+  const _detectBindings = [
+    ['settingsDetectOU', 'ous', 'adSettingsForm', 'ouScope', '选择 OU 同步范围'],
+    ['settingsDetectGroup', 'groups', 'adSettingsForm', 'groupScope', '选择组同步范围'],
+    ['settingsDetectDisabledOU', 'ous', 'adSettingsForm', 'disabledOU', '选择离职 OU'],
+    ['wizDetectOU', 'ous', 'wizardForm', 'ouScope', '选择 OU 同步范围'],
+    ['wizDetectGroup', 'groups', 'wizardForm', 'groupScope', '选择组同步范围'],
+    ['wizDetectDisabledOU', 'ous', 'wizardForm', 'disabledOU', '选择离职 OU'],
+  ];
+  _detectBindings.forEach(function (cfg) {
+    const btn = document.getElementById(cfg[0]);
+    if (btn) btn.addEventListener('click', function () {
+      const form = document.getElementById(cfg[2]);
+      detectScope(cfg[1], form, cfg[3], cfg[4]);
+    });
+  });
 
   // 飞书配置
   document.getElementById('feishuSettingsForm')?.addEventListener('submit', async e => { e.preventDefault(); await saveFeishuSettings(); });
