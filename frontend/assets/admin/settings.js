@@ -218,15 +218,18 @@ async function loadOptions() {
 }
 
 // ─── 向导 ───
+// 注意：CSS 中 .wizard-overlay 默认 opacity:0/visibility:hidden，
+// 通过 .active 类切换可见性（带过渡动画）。不能再用 .hidden（display:none）
+// 否则向导不可见但 body.locked 残留 → 设置页无法滚动。
 function showSetupWizard() {
   const el = document.getElementById('setupWizard');
-  if (el) el.classList.remove('hidden');
+  if (el) el.classList.add('active');
   document.body.classList.add('locked');
 }
 
 function hideSetupWizard() {
   const el = document.getElementById('setupWizard');
-  if (el) el.classList.add('hidden');
+  if (el) el.classList.remove('active');
   document.body.classList.remove('locked');
 }
 

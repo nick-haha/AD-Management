@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────
+# AD Management — Caddy 反向代理配置（内网 HTTPS）
+# ─────────────────────────────────────────────────────────────
+# 部署位置：/etc/caddy/Caddyfile
+#
+# 启用方式：
+#   1. 安装 Caddy:  sudo apt install -y caddy
+#   2. 替换本文件:  sudo cp Caddyfile /etc/caddy/Caddyfile
+#   3. 重载配置:    sudo systemctl reload caddy
+#
+# 内网 HTTPS 方案：
+#   `tls internal` 让 Caddy 用内置 CA 自动签发证书，
+#   首次访问浏览器需信任 Caddy 根证书（导入 /var/lib/caddy/.local/share/caddy/pki/authorities/local/root.crt）。
+#
+# 如已自备证书，将 tls internal 替换为：
+#   tls /etc/ssl/certs/ad.example.com.pem /etc/ssl/private/ad.example.com.key
+# ─────────────────────────────────────────────────────────────
+
+# 替换为实际域名 / IP
+ad.example.com {
+	encode gzip zstd
+
+	# 反向代理到 Go 服务
+	reverse_proxy 127.0.0.1:8080 {
+		# 透传真实客户端 IP（审计日志需要）
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up Host {host}
+	}
+
+	# 静态资源缓存（前端 HTML/JS/CSS 不带 hash，所以只缓存短时间）
+	@static path /assets/* /favicon.ico
+	header @static Cache-Control "public, max-age=3600"
+
+	# 安全响应头
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# 访问日志
+	log {
+		output file /var/log/caddy/ad-management-access.log {
+			roll_size 100mb
+			roll_keep 10
+			roll_keep_for 30d
+		}
+		format json
+	}
+
+	# 内网 CA 自动签发证书
+	tls internal
+}
+
+# HTTP 自动跳转 HTTPS
+http://ad.example.com {
+	redir https://ad.example.com{uri} permanent
+}

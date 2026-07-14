@@ -1,0 +1,31 @@
+[Unit]
+Description=AD Management Service
+Documentation=https://internal-docs/ad-management
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=admgmt
+Group=admgmt
+
+WorkingDirectory=/opt/ad-management
+EnvironmentFile=/opt/ad-management/.env
+
+ExecStart=/opt/ad-management/ad-server
+
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=15s
+
+LimitNOFILE=65536
+LimitNPROC=65536
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/ad-management /var/log/ad-management /opt/ad-management/logs
+
+[Install]
+WantedBy=multi-user.target

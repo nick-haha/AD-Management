@@ -1,13 +1,36 @@
 package api
 
 import (
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	admanagement "ad-management"
 )
 
-func staticFiles(root string) http.Handler {
+// staticFiles serves the frontend. If FRONTEND_DIR is set and the directory exists on disk,
+// it serves from the filesystem (useful for development/live editing).
+// Otherwise, it falls back to the embedded files compiled into the binary.
+func staticFiles(frontendDir string) http.Handler {
+	// Check if a real filesystem directory exists — development mode.
+	if frontendDir != "" {
+		if info, err := os.Stat(frontendDir); err == nil && info.IsDir() {
+			return newDiskHandler(frontendDir)
+		}
+	}
+	// Production: serve from embedded FS (compiled into the binary).
+	sub, err := fs.Sub(admanagement.FrontendFS, "frontend")
+	if err != nil {
+		// Fallback: if embed somehow fails, try disk.
+		return newDiskHandler("frontend")
+	}
+	return newEmbedHandler(sub)
+}
+
+// newDiskHandler serves files from a real directory on disk.
+func newDiskHandler(root string) http.Handler {
 	files := http.FileServer(http.Dir(root))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
@@ -22,6 +45,33 @@ func staticFiles(root string) http.Handler {
 		cleanPath := strings.TrimPrefix(filepath.Clean(path), string(filepath.Separator))
 		fullPath := filepath.Join(root, cleanPath)
 		if info, err := os.Stat(fullPath); err != nil || info.IsDir() {
+			http.NotFound(w, r)
+			return
+		}
+		files.ServeHTTP(w, r)
+	})
+}
+
+// newEmbedHandler serves files from an embedded fs.FS.
+// For path routing (/admin → admin.html, / → index.html), we rewrite the URL
+// and delegate to http.FileServer(http.FS(root)) which handles content types and caching.
+func newEmbedHandler(root fs.FS) http.Handler {
+	files := http.FileServer(http.FS(root))
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		// Map virtual routes to actual HTML files, then let FileServer serve them.
+		if path == "/admin" || path == "/admin/" {
+			r.URL.Path = "/admin.html"
+			files.ServeHTTP(w, r)
+			return
+		}
+		if path == "/" {
+			r.URL.Path = "/index.html"
+			files.ServeHTTP(w, r)
+			return
+		}
+		cleanPath := strings.TrimPrefix(filepath.Clean(path), string(filepath.Separator))
+		if strings.Contains(cleanPath, "..") {
 			http.NotFound(w, r)
 			return
 		}
