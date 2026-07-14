@@ -659,25 +659,6 @@
       </div>
     </div>
   </div>
-  <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-label="操作确认">
-    <div class="modal-content confirm-modal" style="max-width: 400px;">
-      <div class="modal-body text-center" >
-        <div class="confirm-icon" id="confirmIcon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-        <h3 id="confirmTitle">确认操作</h3>
-        <p class="text-muted-sm" id="confirmDesc">确定要执行此操作吗？</p>
-        <div class="confirm-detail" id="confirmDetail"></div>
-        <div class="confirm-warning" id="confirmWarning">
-          <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-          <span id="confirmWarningText">此操作可能会影响用户正常使用</span>
-        </div>
-        <div class="flex gap-3 mt-4" >
-          <button class="btn btn-secondary flex-1"  id="confirmCancelBtn">取消</button>
-          <button class="btn btn-danger flex-1"  id="confirmOkBtn">确认执行</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Scope Picker Modal（OU/组检测选择）-->
   <div id="scopePickerModal" class="modal" role="dialog" aria-modal="true" aria-label="选择条目" style="z-index: 1070;">
     <div class="modal-content" style="max-width: 520px;">
@@ -689,12 +670,6 @@
         <div id="scopePickerList"></div>
       </div>
     </div>
-  </div>
-
-  <!-- Undo Toast -->
-<button class="btn btn-ghost btn-sm" id="undoBtn">撤销</button>
-    </div>
-    <div class="undo-progress" id="undoProgress" style="animation-duration: 10s;"></div>
   </div>
 
   <!-- User Detail Modal -->
@@ -808,52 +783,10 @@
     </div>
   </div>
 
-  <!-- Create Password Modal -->
-  <div id="createPwdModal" class="modal" role="dialog" aria-modal="true" aria-label="设置初始密码">
-    <div class="modal-content" style="max-width: 420px;">
-      <div id="createPwdStep1">
-        <div class="modal-header">
-          <h3 class="modal-title">设置初始密码</h3>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted-sm">为新创建的用户设置密码</p>
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">密码</label>
-              <div class="flex gap-2">
-                <input id="createPwdInput" type="text" class="form-input flex-1"  placeholder="点击「随机」或手动输入" />
-                <button type="button" id="createPwdGenerateBtn" class="btn btn-secondary btn-sm" title="随机生成密码" aria-label="随机生成密码"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-              </div>
-            </div>
-            <label class="chk-row"><input id="createPwdMustChange" type="checkbox" checked /> 要求用户下次登录时修改密码</label>
-            <div class="flex gap-2">
-              <button type="button" id="createPwdCancelBtn" class="btn btn-secondary flex-1" >取消</button>
-              <button type="button" id="createPwdConfirmBtn" class="btn btn-primary flex-1" >创建账号</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="createPwdStep2" style="display: none;">
-        <div class="modal-body" style="text-align: center; padding: var(--space-8);">
-          <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--success-50); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4); font-size: 36px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-          <h3 class="mb-2">用户创建成功</h3>
-          <p class="text-muted-sm" id="createPwdResultUser">账号已创建</p>
-          <div style="background: var(--bg-muted); border-radius: var(--radius-xl); border: 1px solid var(--border-subtle); padding: var(--space-4); margin-bottom: var(--space-4);">
-            <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: var(--space-1);">初始密码</div>
-            <div id="createPwdFinalPwd" style="font-family: var(--font-mono); font-size: 28px; font-weight: var(--weight-bold); color: var(--success-600); letter-spacing: 2px; word-break: break-all;">------</div>
-            <button type="button" id="createPwdCopyBtn" class="btn btn-ghost btn-sm" style="width: 100%; margin-top: var(--space-2);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v1H8V3a1 1 0 0 1 1-1z"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg> 复制密码</button>
-          </div>
-          <p style="font-size: 12px; color: var(--text-secondary); text-align: left;"><b>安全提示：</b>请将密码及时发送给用户，关闭后不再显示。</p>
-          <button type="button" id="createPwdDoneBtn" class="btn btn-primary btn-block mt-4" >完成</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- ES Module 入口（替代旧 admin.js）-->
-  <script type="module" src="/assets/admin/app.js?v=41"></script>
+  <script type="module" src="/assets/admin/app.js?v=42"></script>
 </body>
 </html>
