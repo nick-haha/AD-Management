@@ -121,11 +121,24 @@ else
   log ""
 fi
 
-# ===== 5. 设置权限 =====
+# ===== 5. 迁移遗留 DB + 设置权限 =====
+# 如果 /opt 下有 DB（曾手动 ./ad-server 在当前目录创建的），迁移到规范路径 /var/lib
+if [[ -f "$INSTALL_DIR/ad-management.db" ]]; then
+  if [[ ! -f "$DATA_DIR/ad-management.db" ]]; then
+    cp "$INSTALL_DIR/ad-management.db" "$DATA_DIR/ad-management.db"
+    log "迁移 DB: $INSTALL_DIR/ad-management.db → $DATA_DIR/ad-management.db"
+  fi
+  rm -f "$INSTALL_DIR/ad-management.db"
+  log "已清理 $INSTALL_DIR 下的遗留 DB（规范路径：$DATA_DIR）"
+fi
+
 log "设置目录权限"
 chown -R "$APP_USER:$APP_GROUP" "$INSTALL_DIR" "$DATA_DIR" "$LOG_DIR"
 chmod 0750 "$INSTALL_DIR" "$DATA_DIR" "$LOG_DIR"
 chmod 0640 "$ENV_FILE"
+# 显式确保 DB 文件属主（chown -R 已覆盖，这里双保险）
+[[ -f "$DATA_DIR/ad-management.db" ]] && chown "$APP_USER:$APP_GROUP" "$DATA_DIR/ad-management.db"
+warn "切勿以 root 手动跑 ./ad-server——会创建 root 属主的 DB 导致服务账号(admgmt)只读写入失败。始终用 systemctl 管理服务。"
 
 # ===== 6. 安装 systemd unit =====
 log "安装 systemd unit"
@@ -144,6 +157,8 @@ User=${APP_USER}
 Group=${APP_GROUP}
 WorkingDirectory=${INSTALL_DIR}
 EnvironmentFile=${ENV_FILE}
+# 每次启动前以 root 修复 DB/logs 属主（+ 前缀绕过 User= 以 root 执行）
+ExecStartPre=+/bin/sh -c 'for d in ${DATA_DIR} ${LOG_DIR} ${INSTALL_DIR}/logs; do [ -e "\$d" ] && chown -R ${APP_USER}:${APP_GROUP} "\$d" 2>/dev/null; done; for f in ${INSTALL_DIR}/ad-management.db ${DATA_DIR}/ad-management.db; do [ -f "\$f" ] && chown ${APP_USER}:${APP_GROUP} "\$f" 2>/dev/null; done; exit 0'
 ExecStart=${INSTALL_DIR}/ad-server
 Restart=on-failure
 RestartSec=5s

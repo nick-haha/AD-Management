@@ -12,6 +12,10 @@ Group=admgmt
 WorkingDirectory=/opt/ad-management
 EnvironmentFile=/opt/ad-management/.env
 
+# 每次启动前以 root 修复 DB/logs 属主（+ 前缀绕过 User= 以 root 执行）。
+# 防止曾以 root 手动跑过 ./ad-server 导致 DB 属主变 root、服务账号只读写入失败。
+ExecStartPre=+/bin/sh -c 'for d in /var/lib/ad-management /var/log/ad-management /opt/ad-management/logs; do [ -e "$d" ] && chown -R admgmt:admgmt "$d" 2>/dev/null; done; for f in /opt/ad-management/ad-management.db /var/lib/ad-management/ad-management.db; do [ -f "$f" ] && chown admgmt:admgmt "$f" 2>/dev/null; done; exit 0'
+
 ExecStart=/opt/ad-management/ad-server
 
 Restart=on-failure
