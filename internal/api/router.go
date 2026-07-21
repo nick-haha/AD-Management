@@ -311,6 +311,7 @@ func (s *Server) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := s.ad.CreateUser(r.Context(), req)
 	if err != nil {
+		s.logger.Error("create user failed", "error", err, "sam", req.SAMAccountName, "ou", req.OU, "upn", req.UserPrincipalName)
 		writeError(w, err)
 		return
 	}
@@ -880,7 +881,8 @@ func writeError(w http.ResponseWriter, err error) {
 	case errors.Is(err, ad.ErrNotFound):
 		writeJSON(w, http.StatusNotFound, errorResponse{Error: err.Error()})
 	default:
-		writeJSON(w, http.StatusBadGateway, errorResponse{Error: "ad_operation_failed"})
+		// 暴露具体 AD/LDAP 错误原因（权限不足/OU 不存在/密码策略/连接失败等），便于排查
+		writeJSON(w, http.StatusBadGateway, errorResponse{Error: "ad_operation_failed: " + err.Error()})
 	}
 }
 
