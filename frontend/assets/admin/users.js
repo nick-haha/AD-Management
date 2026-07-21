@@ -29,8 +29,14 @@ function pwdExpiryInfo(pwdLastSet, passwordNeverExpires, maxAgeDays, passwordExp
   // 优先用 AD 真实计算属性 msDS-UserPasswordExpiryTimeComputed（域控综合域策略/PSO/UAC 算出的权威到期时间）
   if (passwordExpiresAt) {
     const pe = String(passwordExpiresAt).trim();
-    // 0 / INT64_MAX(9223372036854775807) → 永不过期
-    if (pe === '0' || pe === '' || pe === '9223372036854775807') return { text: '永不过期', cls: 'ok' };
+    // INT64_MAX(9223372036854775807) → 永不过期
+    if (pe === '9223372036854775807') return { text: '永不过期', cls: 'ok' };
+    // 0 有歧义：可能是"永不过期"(域策略 maxPwdAge 未设置)，也可能是"必须改密"(pwdLastSet=0，管理员要求下次登录改密)
+    // 用 pwdLastSet 区分：pwdLastSet=0 表示用户须下次登录改密，非永不过期
+    if (pe === '0' || pe === '') {
+      if (pwdLastSet === '0') return { text: '需设置', cls: 'warn' };
+      return { text: '永不过期', cls: 'ok' };
+    }
     // -1 → 用户须在下次登录改密
     if (pe === '-1') return { text: '需设置', cls: 'warn' };
     try {
