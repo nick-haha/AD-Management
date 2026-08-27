@@ -158,12 +158,10 @@
           page.style.display = "";
           page.innerHTML = '<div class="ss-wrap"><div class="ss-feishu-warning">' +
             '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
-            '<h3>飞书登录未配置</h3><p>自助服务需要飞书账号认证。请联系管理员在管理控制台中配置飞书集成后再使用。</p>' +
-            '<a href="/admin" style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;padding:10px 24px;font-size:14px;font-weight:600;border-radius:var(--ss-radius-sm);border:0;cursor:pointer;background:var(--ss-cyan);color:#fff;text-decoration:none">前往管理控制台</a>' +
+            '<h3>飞书登录未配置</h3><p>自助服务需要飞书账号认证。请联系企业 IT 服务台完成飞书集成后再使用。</p>' +
             '</div></div>';
         }
-        authOverlay.style.opacity = "0";
-        setTimeout(function() { authOverlay.style.display = "none"; }, 300);
+        hideAuthOverlay();
       });
   }
 
@@ -202,7 +200,8 @@
 
   // ─── 重新显示登录遮罩（退出登录时调用）───
   function showAuthOverlay() {
-    authOverlay.style.display = "flex";
+    authOverlay.classList.remove("hidden", "is-leaving");
+    authOverlay.style.display = "";
     authOverlay.style.opacity = "1";
     var page = document.getElementById("ssPage");
     if (page) page.style.display = "none";
@@ -210,9 +209,13 @@
   }
 
   function hideAuthOverlay() {
+    authOverlay.classList.add("is-leaving");
     authOverlay.style.opacity = "0";
     authOverlay.style.transition = "opacity 0.25s";
-    setTimeout(function() { authOverlay.style.display = "none"; }, 260);
+    setTimeout(function() {
+      authOverlay.classList.add("hidden");
+      authOverlay.classList.remove("is-leaving");
+    }, 260);
     // 自动聚焦搜索框
     if (queryInput) queryInput.focus();
   }
@@ -368,8 +371,8 @@
     results.innerHTML =
       '<div class="ss-empty">' +
         '<div class="ss-empty-icon"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>' +
-        '<h3>无法操作管理员账号</h3>' +
-        '<p>该账户为系统管理员，请通过<a href="/admin">管理控制台</a>进行操作</p>' +
+        '<h3>该账户不支持自助操作</h3>' +
+        '<p>该账户属于受保护的管理员身份，请联系企业 IT 服务台处理。</p>' +
       '</div>';
   }
 
