@@ -2,8 +2,8 @@
  * User Detail 模块 — 用户详情弹窗 + 操作按钮
  */
 import { api } from './api.js';
-import { showToast, openDangerConfirm, escHTML, escJS } from './ui.js';
-import { adTimeToString, pwdExpiryInfo } from './users.js';
+import { showToast, openModal, closeModal, openDangerConfirm, escHTML, escJS } from './ui.js';
+import { adTimeToString, pwdExpiryInfo, setSelectedUser } from './users.js';
 import { formatTime, actionLabel, avatarGradient } from './shared.js';
 
 let currentDetailAccount = '';
@@ -15,17 +15,39 @@ function setText(id, text) {
 }
 
 async function showUserDetail(account) {
+  const modal = document.getElementById('userDetailModal');
+  if (!modal) return;
+  setSelectedUser(account);
+  modal.setAttribute('aria-busy', 'true');
+  const emptyState = document.getElementById('detailEmptyState');
+  emptyState?.classList.remove('hidden');
+  document.getElementById('detailContent')?.classList.add('hidden');
+  const emptyTitle = emptyState?.querySelector('h2');
+  const emptyDesc = emptyState?.querySelector('p');
+  if (emptyTitle) emptyTitle.textContent = '正在读取目录对象';
+  if (emptyDesc) emptyDesc.textContent = '正在加载账号属性、组成员关系与审计记录。';
+  if (window.matchMedia('(max-width: 760px)').matches) {
+    modal.classList.add('modal');
+    if (!modal.classList.contains('active')) openModal('userDetailModal');
+  } else {
+    modal.classList.remove('modal');
+    modal.classList.add('active');
+    modal.setAttribute('role', 'region');
+    modal.removeAttribute('aria-modal');
+  }
   try {
     const resp = await api('/api/admin/users/detail?account=' + encodeURIComponent(account));
-    const modal = document.getElementById('userDetailModal');
-    if (!modal) return;
     const user = resp.user || {};
     const scheduledTasks = resp.scheduledTasks || [];
     const recentLogs = resp.recentLogs || [];
     const acct = user.samAccountName || account;
     currentDetailAccount = acct;
+    setSelectedUser(acct);
 
-    setText('detailAvatar', acct ? acct[0].toUpperCase() : 'U');
+    document.getElementById('detailEmptyState')?.classList.add('hidden');
+    document.getElementById('detailContent')?.classList.remove('hidden');
+
+    setText('detailAvatar', acct ? acct[0].toUpperCase() : 'ID');
     const detailAv = document.getElementById('detailAvatar');
     if (detailAv) detailAv.style.background = avatarGradient(acct);
     setText('detailDisplayName', user.displayName || acct || '-');
@@ -44,11 +66,11 @@ async function showUserDetail(account) {
     const infoGrid = document.getElementById('detailInfoGrid');
     if (infoGrid) {
       const rows = [
-        ['域用户名', user.samAccountName], ['UPN', user.userPrincipalName],
-        ['邮箱', user.mail], ['部门', user.department], ['职位', user.title],
-        ['电话', user.telephoneNumber], ['描述', user.description], ['DN', user.dn],
-        ['最后登录', adTimeToString(user.lastLogon)], ['创建时间', adTimeToString(user.whenCreated)],
-        ['密码状态', pwdExpiryInfo(user.pwdLastSet, user.passwordNeverExpires, undefined, user.passwordExpiresAt).text],
+        ['sAMAccountName', user.samAccountName], ['用户主体名称 (UPN)', user.userPrincipalName],
+        ['邮箱地址', user.mail], ['部门属性', user.department], ['职务', user.title],
+        ['电话号码', user.telephoneNumber], ['说明', user.description], ['可分辨名称 (DN)', user.dn],
+        ['上次登录', adTimeToString(user.lastLogon)], ['对象创建时间', adTimeToString(user.whenCreated)],
+        ['密码到期状态', pwdExpiryInfo(user.pwdLastSet, user.passwordNeverExpires, undefined, user.passwordExpiresAt).text],
       ];
       infoGrid.innerHTML = rows.map(function (r) {
         return '<div class="detail-item"><span class="detail-label">' + escHTML(r[0]) + '</span><span class="detail-value">' + escHTML(r[1] || '-') + '</span></div>';
@@ -127,15 +149,29 @@ async function showUserDetail(account) {
       timeInput.min = now.toISOString().slice(0, 16);
       timeInput.value = '';
     }
-    modal.classList.add('active');
   } catch (err) {
+    if (emptyTitle) emptyTitle.textContent = '无法读取目录对象';
+    if (emptyDesc) emptyDesc.textContent = err.message || '请检查目录连接与当前权限。';
     showToast('获取用户详情失败: ' + err.message, 'danger');
+  } finally {
+    modal.removeAttribute('aria-busy');
   }
 }
 
 function closeUserDetail() {
-  const modal = document.getElementById('userDetailModal');
-  if (modal) modal.classList.remove('active');
+  const pane = document.getElementById('userDetailModal');
+  if (pane?.classList.contains('modal')) closeModal();
+  pane?.classList.remove('active', 'modal');
+  pane?.setAttribute('role', 'region');
+  pane?.removeAttribute('aria-modal');
+  document.getElementById('detailContent')?.classList.add('hidden');
+  const emptyState = document.getElementById('detailEmptyState');
+  emptyState?.classList.remove('hidden');
+  const emptyTitle = emptyState?.querySelector('h2');
+  const emptyDesc = emptyState?.querySelector('p');
+  if (emptyTitle) emptyTitle.textContent = '选择一个用户';
+  if (emptyDesc) emptyDesc.textContent = '用户资料、账号状态和管理操作会显示在这里。';
+  setSelectedUser('');
 }
 
 async function doUnlock(account) {

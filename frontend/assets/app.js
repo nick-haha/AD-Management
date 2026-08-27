@@ -36,6 +36,42 @@
   var currentQuery = "";
   var pendingConfirm = null;
   var currentUser = null; // { name, account, openId }
+  var activeModal = null;
+  var focusBeforeModal = null;
+
+  function openAccessibleModal(modal, preferredFocus) {
+    if (!modal) return;
+    focusBeforeModal = document.activeElement;
+    activeModal = modal;
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.classList.add("open");
+    requestAnimationFrame(function() {
+      var target = preferredFocus || modal.querySelector('button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])');
+      if (target) target.focus();
+    });
+  }
+
+  function closeAccessibleModal(modal) {
+    if (!modal) return;
+    var wasOpen = activeModal === modal || modal.classList.contains("open");
+    if (!wasOpen) return;
+    modal.classList.remove("open");
+    modal.removeAttribute("aria-modal");
+    if (activeModal === modal) activeModal = null;
+    if (focusBeforeModal && typeof focusBeforeModal.focus === "function") focusBeforeModal.focus();
+    focusBeforeModal = null;
+  }
+
+  function trapModalFocus(e) {
+    if (!activeModal || e.key !== "Tab") return;
+    var focusable = activeModal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) { e.preventDefault(); return; }
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
 
   // ─── HTML 转义 ───
   function esc(s) {
@@ -402,24 +438,24 @@
         confirmOk.className = "ss-btn ss-btn-danger";
         confirmOk.textContent = "确认重置";
       }
-      confirmModal.classList.add("open");
+      openAccessibleModal(confirmModal, confirmCancel);
       pendingConfirm = resolve;
     });
   }
 
   confirmCancel.addEventListener("click", function() {
-    confirmModal.classList.remove("open");
+    closeAccessibleModal(confirmModal);
     if (pendingConfirm) { pendingConfirm(false); pendingConfirm = null; }
   });
 
   confirmOk.addEventListener("click", function() {
-    confirmModal.classList.remove("open");
+    closeAccessibleModal(confirmModal);
     if (pendingConfirm) { pendingConfirm(true); pendingConfirm = null; }
   });
 
   confirmModal.addEventListener("click", function(e) {
     if (e.target === confirmModal) {
-      confirmModal.classList.remove("open");
+      closeAccessibleModal(confirmModal);
       if (pendingConfirm) { pendingConfirm(false); pendingConfirm = null; }
     }
   });
@@ -473,7 +509,7 @@
     }
     if (footerActive) footerActive.style.display = "";
     if (footerExpired) footerExpired.style.display = "none";
-    pwdModal.classList.add("open");
+    openAccessibleModal(pwdModal, copyPwdBtn);
     startPwdCountdown();
   }
 
@@ -523,7 +559,7 @@
 
   function closePwdModal() {
     clearPwdCountdown();
-    pwdModal.classList.remove("open");
+    closeAccessibleModal(pwdModal);
   }
 
   copyPwdBtn.addEventListener("click", function() {
@@ -578,15 +614,16 @@
 
   // ─── 全局快捷键 ───
   document.addEventListener("keydown", function(e) {
+    trapModalFocus(e);
     // "/" 聚焦搜索框
-    if (e.key === "/" && document.activeElement !== queryInput) {
+    if (e.key === "/" && !activeModal && document.activeElement !== queryInput) {
       e.preventDefault();
       queryInput.focus();
     }
     // Esc 关闭弹窗
     if (e.key === "Escape") {
       closePwdModal();
-      confirmModal.classList.remove("open");
+      closeAccessibleModal(confirmModal);
       if (pendingConfirm) { pendingConfirm(false); pendingConfirm = null; }
     }
   });

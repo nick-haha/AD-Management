@@ -2,7 +2,7 @@
  * Users 模块 — 用户搜索/列表渲染/分页
  */
 import { api } from './api.js';
-import { showToast, escHTML, escJS, renderSkeletonCards, renderEmptyState } from './ui.js';
+import { showToast, escHTML, escAttr, escJS, renderSkeletonCards, renderEmptyState } from './ui.js';
 import { avatarGradient } from './shared.js';
 
 // ─── 状态 ───
@@ -10,6 +10,7 @@ let currentPage = 1;
 const pageSize = 20;
 let totalUsers = 0;
 let lastSearchResults = [];
+let selectedAccount = '';
 
 // ─── 时间工具 ───
 function adTimeToString(ts) {
@@ -89,7 +90,8 @@ async function searchUsers() {
     return;
   }
 
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 搜索中...'; }
+  const originalButton = btn?.innerHTML || '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>'; btn.setAttribute('aria-label', '正在搜索'); }
   renderSkeletonCards(result, 5);
 
   try {
@@ -101,7 +103,7 @@ async function searchUsers() {
   } catch (err) {
     result.innerHTML = '<div class="empty-state"><p>搜索失败: ' + escHTML(err.message) + '</p></div>';
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '搜索'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = originalButton; btn.setAttribute('aria-label', '搜索'); }
   }
 }
 
@@ -118,8 +120,8 @@ function renderUserList() {
     return;
   }
 
-  // 卡片网格视图
-  let html = '<div class="user-grid">';
+  let html = '<div class="identity-result-meta"><span>查询结果</span><strong>' + totalUsers + ' 个用户</strong></div>';
+  html += '<div class="identity-list" role="list">';
   pageUsers.forEach(function (user) {
     const pwdInfo = pwdExpiryInfo(user.pwdLastSet, user.passwordNeverExpires, undefined, user.passwordExpiresAt);
     const acct = user.samAccountName || '';
@@ -127,22 +129,14 @@ function renderUserList() {
     const dept = user.department || user.dn?.match(/OU=([^,]+)/)?.[1] || '-';
     const name = user.displayName || acct || '-';
 
-    html += '<div class="user-card' + (isDisabled ? ' disabled' : '') + '" onclick="showUserDetail(\'' + escJS(acct) + '\')">';
-    html += '<div class="user-card-header">';
-    html += '<div class="user-card-avatar" style="background:' + avatarGradient(acct) + '">' + escHTML(acct ? acct[0].toUpperCase() : '?') + '</div>';
-    html += '<div class="user-card-info"><div class="user-card-name">' + escHTML(name) + '</div>';
-    html += '<div class="user-card-acct">' + escHTML(acct || '-') + '</div></div>';
-    html += '<span class="badge ' + (isDisabled ? 'badge-danger' : 'badge-success') + '">' + (isDisabled ? '已禁用' : '正常') + '</span>';
-    html += '</div>';
-    html += '<div class="user-card-body">';
-    html += '<div class="user-card-label">部门</div><div class="user-card-value">' + escHTML(dept) + '</div>';
-    html += '<div class="user-card-label">密码</div><div class="user-card-value pwd-' + pwdInfo.cls + '">' + escHTML(pwdInfo.text) + '</div>';
-    html += '</div>';
-    html += '<div class="user-card-actions" onclick="event.stopPropagation()">';
-    html += '<button class="row-btn" title="重置密码" onclick="openResetModal(\'' + escJS(acct) + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></button>';
-    html += '<button class="row-btn" title="加入组" onclick="promptAddGroup(\'' + escJS(acct) + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></button>';
-    html += '</div>';
-    html += '</div>';
+    const selected = acct === selectedAccount;
+    html += '<button type="button" class="identity-row' + (isDisabled ? ' is-disabled' : '') + (selected ? ' is-selected' : '') + '" role="listitem" data-account="' + escAttr(acct) + '" aria-pressed="' + selected + '" onclick="showUserDetail(\'' + escJS(acct) + '\')">';
+    html += '<span class="identity-row-avatar" style="background:' + avatarGradient(acct) + '">' + escHTML(acct ? acct[0].toUpperCase() : '?') + '</span>';
+    html += '<span class="identity-row-main"><strong>' + escHTML(name) + '</strong><small>' + escHTML(acct || '-') + '</small></span>';
+    html += '<span class="identity-row-context"><strong>' + escHTML(dept) + '</strong><small class="pwd-' + pwdInfo.cls + '">' + escHTML(pwdInfo.text) + '</small></span>';
+    html += '<span class="identity-row-status ' + (isDisabled ? 'is-disabled' : 'is-active') + '"><i></i>' + (isDisabled ? '禁用' : '正常') + '</span>';
+    html += '<svg class="identity-row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+    html += '</button>';
   });
   html += '</div>';
 
@@ -160,6 +154,15 @@ function renderUserList() {
   result.innerHTML = html;
 }
 
+function setSelectedUser(account) {
+  selectedAccount = account || '';
+  document.querySelectorAll('.identity-row').forEach(function (row) {
+    const selected = row.getAttribute('data-account') === selectedAccount;
+    row.classList.toggle('is-selected', selected);
+    row.setAttribute('aria-pressed', String(selected));
+  });
+}
+
 function prevPage() {
   if (currentPage > 1) { currentPage--; renderUserList(); }
 }
@@ -169,4 +172,4 @@ function nextPage() {
   if (currentPage < totalPages) { currentPage++; renderUserList(); }
 }
 
-export { searchUsers, renderUserList, prevPage, nextPage, adTimeToString, pwdExpiryInfo };
+export { searchUsers, renderUserList, prevPage, nextPage, adTimeToString, pwdExpiryInfo, setSelectedUser };

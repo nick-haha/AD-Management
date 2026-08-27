@@ -17,8 +17,31 @@ let resetPwdCountdownTimer = null;
 let resetPwdCountdownSec = 0;
 let resetPwdMustChangeVal = true;
 
+function revealAdminWorkspace(animate) {
+  const loginPage = document.querySelector('#loginPage');
+  const adminApp = document.querySelector('#adminApp');
+  document.body.classList.remove('locked');
+  adminApp?.classList.remove('hidden');
+  if (!animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    loginPage?.classList.add('hidden');
+    return;
+  }
+  document.body.classList.add('admin-transitioning');
+  requestAnimationFrame(function () { document.body.classList.add('admin-transition-active'); });
+  window.setTimeout(function () { loginPage?.classList.add('hidden'); }, 320);
+  window.setTimeout(function () { document.body.classList.remove('admin-transitioning', 'admin-transition-active'); }, 860);
+}
+
 function resetCreateForm() { const f = document.getElementById('createForm'); if (f) f.reset(); }
-async function loadOffboardDefaults() {}
+async function loadOffboardDefaults() {
+  const settings = await loadADSettings();
+  const disabledOU = settings?.disabledOU?.trim();
+  if (!disabledOU) return;
+  ['targetOU', 'batchTargetOU'].forEach(function (id) {
+    const input = document.getElementById(id);
+    if (input && !input.value.trim()) input.value = disabledOU;
+  });
+}
 
 // 密码强度条更新
 function updatePwdStrength(input) {
@@ -43,9 +66,7 @@ function updatePwdStrength(input) {
 
 // ─── 显示/隐藏 ───
 async function showAdmin() {
-  document.body.classList.remove('locked');
-  document.querySelector('#loginPage')?.classList.add('hidden');
-  document.querySelector('#adminApp')?.classList.remove('hidden');
+  revealAdminWorkspace(true);
   initTheme();
   try {
     const settings = await loadADSettings();
@@ -56,6 +77,7 @@ async function showAdmin() {
 
 function hideAdmin() {
   clearAuth(); setMyRole(''); setMyPerms([]);
+  document.body.classList.remove('admin-transitioning', 'admin-transition-active');
   document.body.classList.add('locked');
   document.querySelector('#loginPage')?.classList.remove('hidden');
   document.querySelector('#adminApp')?.classList.add('hidden');
@@ -65,12 +87,33 @@ onAuthExpired(hideAdmin);
 
 // ─── Tab 导航 ───
 async function switchTab(id) {
-  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-  document.querySelector('.sidebar-item[data-tab="' + id + '"]')?.classList.add('active');
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelector('#' + id)?.classList.add('active');
+  const pageCopy = {
+    overview: ['Active Directory 目录', '检索并处置域用户、账号状态和组织单位'],
+    create: ['创建 AD 域账号', '配置用户标识、登录属性与安全组成员关系'],
+    offboard: ['账号回收', '禁用域账号、迁移至离职 OU 并保留审计记录'],
+    logs: ['AD 审计日志', '追踪目录对象和身份访问操作'],
+    tasks: ['计划任务', '管理预定执行的域账号处置任务'],
+    settings: ['AD 域服务配置', '维护 LDAP 连接与企业身份提供方设置'],
+  };
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const activate = function () {
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    document.querySelector('.sidebar-item[data-tab="' + id + '"]')?.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.querySelector('#' + id);
+    panel?.classList.add('active');
+    document.documentElement.dataset.adminSection = id;
+    const copy = pageCopy[id] || pageCopy.overview;
+    const title = document.querySelector('#adminPageTitle');
+    const desc = document.querySelector('#adminPageDescription');
+    if (title) title.textContent = copy[0];
+    if (desc) desc.textContent = copy[1];
+  };
+  if (document.startViewTransition && !reduceMotion) document.startViewTransition(activate);
+  else activate();
   if (id === 'overview') { document.querySelector('#adminResult').innerHTML = ''; setTimeout(searchUsers, 50); }
   else if (id === 'create') { resetCreateForm(); await loadOptions(); }
+  else if (id === 'offboard') await loadOffboardDefaults();
   else if (id === 'logs') await loadLogs();
   else if (id === 'tasks') await loadTasks();
   else if (id === 'settings') { await loadADSettings(); loadFeishuSettings(); }
@@ -91,8 +134,7 @@ async function tryRestoreSession() {
       const badge = document.querySelector('#adminRoleBadge');
       if (badge) badge.textContent = roleLabels[me?.role] || me?.role || '管理员';
     } catch (e) {}
-    document.querySelector('#loginPage')?.classList.add('hidden');
-    document.querySelector('#adminApp')?.classList.remove('hidden');
+    revealAdminWorkspace(false);
     initTheme(); applyRoleUI();
     const savedName = localStorage.getItem(USERNAME_KEY) || 'admin';
     const dn = document.querySelector('#dropdownName'); if (dn) dn.textContent = savedName;
@@ -240,6 +282,14 @@ function initDOMListeners() {
 
   // 侧边栏：事件委托（只需绑定一次，避免重复触发）
   document.querySelector('#sidebarNav')?.addEventListener('click', e => { const item = e.target.closest('.sidebar-item'); if (item?.dataset.tab) switchTab(item.dataset.tab); });
+  document.querySelectorAll('.operation-index, .settings-index').forEach(function (nav) {
+    nav.addEventListener('click', function (e) {
+      const link = e.target.closest('a[href^="#"]');
+      if (!link) return;
+      nav.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+      link.classList.add('active');
+    });
+  });
 
   // 侧边栏折叠
   const sidebar = document.getElementById('sidebar');
@@ -259,15 +309,23 @@ function initDOMListeners() {
   // 详情弹窗 tab
   document.querySelector('.detail-tabs')?.addEventListener('click', function(e) {
     const tab = e.target.closest('.detail-tab'); if (!tab?.dataset.tab) return;
-    this.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active')); tab.classList.add('active');
+    this.querySelectorAll('.detail-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
     const modal = document.getElementById('userDetailModal');
     modal?.querySelectorAll('.detail-tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById('detailTab' + capitalize(tab.dataset.tab))?.classList.add('active');
   });
 
   // 头像下拉
-  document.querySelector('#adminAvatar')?.addEventListener('click', e => { e.stopPropagation(); document.querySelector('#adminDropdown')?.classList.toggle('open'); });
-  document.addEventListener('click', () => document.querySelector('#adminDropdown')?.classList.remove('open'));
+  document.querySelector('#adminAvatar')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const open = document.querySelector('#adminDropdown')?.classList.toggle('open') || false;
+    this.setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('click', () => {
+    document.querySelector('#adminDropdown')?.classList.remove('open');
+    document.querySelector('#adminAvatar')?.setAttribute('aria-expanded', 'false');
+  });
   document.querySelectorAll('.dropdown-item[data-action]').forEach(btn => btn.addEventListener('click', function() {
     document.querySelector('#adminDropdown')?.classList.remove('open');
     const a = this.dataset.action;
@@ -478,7 +536,7 @@ function initDOMListeners() {
     const acct = v.account?.trim(); if (!acct) { showToast('请输入域用户名', 'warning'); return; }
     openDangerConfirm({ title:'离职处理', desc:'即将禁用账号并移动到离职 OU', target: acct, warning:'离职处理后账号将被禁用并移出原部门。', confirmText:'确认离职处理',
       onConfirm: async () => { const btn = this.querySelector('button[type="submit"]'); const orig = btn?.innerHTML || ''; if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 处理中...'; }
-        try { await api('/api/admin/users/offboard', { method:'POST', body: JSON.stringify({ account: acct, targetOU: v.targetOU || '' }) }); showToast('离职处理完成', 'success'); this.reset(); }
+        try { await api('/api/admin/users/offboard', { method:'POST', body: JSON.stringify({ account: acct, targetOU: v.targetOU || '' }) }); showToast('账号回收完成', 'success'); this.reset(); await loadOffboardDefaults(); }
         catch (err) { showToast('离职处理失败: ' + err.message, 'danger'); }
         finally { if (btn) { btn.disabled = false; btn.innerHTML = orig; } }
       }
@@ -498,7 +556,7 @@ function initDOMListeners() {
     const success = [], failed = [];
     for (const acct of acctList) { try { await api('/api/admin/users/offboard', { method:'POST', body: JSON.stringify({ account: acct, targetOU: targetOUInput?.value.trim() || '' }) }); success.push(acct); } catch (err) { failed.push(acct + ': ' + err.message); } }
     if (resultDiv) { let h = '<div style="margin-top:8px"><div style="color:var(--success-600);font-size:13px">✓ 成功 ' + success.length + ' 个</div>'; if (failed.length) { h += '<div style="color:var(--danger-600);font-size:13px">✕ 失败 ' + failed.length + ' 个:</div>'; failed.forEach(f => h += '<div style="color:var(--danger-500);font-size:12px;padding-left:12px">' + escHTML(f) + '</div>'); } resultDiv.innerHTML = h + '</div>'; }
-    this.disabled = false; this.textContent = '批量禁用并移入离职 OU';
+    this.disabled = false; this.textContent = '复核并批量回收';
   });
 
   // 刷新选项
@@ -509,8 +567,10 @@ function initDOMListeners() {
 document.addEventListener('keydown', function(e) {
   // Esc 关闭所有弹窗
   if (e.key === 'Escape') {
-    document.querySelectorAll('.modal.active, .modal[style*="display: flex"]').forEach(m => m.classList.remove('active'));
-    document.body.classList.remove('locked');
+    const detailPane = document.querySelector('#userDetailModal.modal.active');
+    if (detailPane) closeUserDetail(); else closeModal();
+    document.querySelector('#adminDropdown')?.classList.remove('open');
+    document.querySelector('#adminAvatar')?.setAttribute('aria-expanded', 'false');
   }
 });
 

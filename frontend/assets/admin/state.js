@@ -45,7 +45,7 @@ function applyRoleUI() {
     if (tab === 'create' && !hasPerm('create')) show = false;
     if (tab === 'offboard' && !hasPerm('offboard')) show = false;
     if (tab === 'tasks' && !hasPerm('tasks')) show = false;
-    if (tab === 'audit' && !hasPerm('audit')) show = false;
+    if (tab === 'logs' && !hasPerm('audit')) show = false;
     if (tab === 'settings' && !hasPerm('adSettings') && !hasPerm('feishuSettings')) show = false;
     btn.style.display = show ? '' : 'none';
   });

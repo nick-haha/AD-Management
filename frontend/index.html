@@ -1,9 +1,16 @@
 <!doctype html>
+<!--
+  THESIS: Personal identity recovery begins in an aurora threshold and resolves into one clear account action.
+  OWN-WORLD: Pure black controls, a lilac-to-indigo grain aurora, white type, carbon fields, and bright recovery surfaces.
+  STORY: Verify with Feishu, find the account, understand its state, then complete the one safe recovery action.
+  FIRST VIEWPORT: A 52% aurora media panel stages three recovery steps; the black right panel centers Feishu verification.
+  FORM: Aurora self-service threshold with task continuity.
+-->
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>域账户自助服务</title>
+  <title>身份自助服务</title>
   <link rel="stylesheet" href="/assets/tokens.css?v=1" />
   <link rel="stylesheet" href="/assets/components.css?v=1" />
   <link rel="stylesheet" href="/assets/selfservice.css?v=1" />
@@ -203,7 +210,7 @@
       transition: all 0.2s;
       font-family: inherit;
     }
-    .ss-auth-login-btn:hover { background: #0284C7; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(14,165,233,0.35); }
+    .ss-auth-login-btn:hover { background: #0284C7; transform: translateY(-1px); }
     .ss-auth-login-btn:active { transform: translateY(0); }
     .ss-auth-login-btn svg { flex-shrink: 0; }
 
@@ -451,14 +458,16 @@
 
     /* ─── 卡片展开内容 ─── */
     .ss-card-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.35s var(--ss-enter), padding 0.35s var(--ss-enter);
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s var(--ss-enter);
     }
     .ss-card.expanded .ss-card-body {
-      max-height: 500px;
+      grid-template-rows: 1fr;
     }
     .ss-card-body-inner {
+      min-height: 0;
+      overflow: hidden;
       padding: 0 20px 20px;
       border-top: 1px solid var(--ss-line);
       padding-top: 16px;
@@ -636,8 +645,8 @@
       text-align: center;
       max-width: min(90vw, 440px);
     }
-    .ss-toast.success { border-left: 3px solid var(--ss-green); }
-    .ss-toast.error { border-left: 3px solid var(--ss-red); }
+    .ss-toast.success { border-color: var(--ss-green); }
+    .ss-toast.error { border-color: var(--ss-red); }
 
     /* ─── 欢迎区域 + 功能引导 ─── */
     .ss-welcome {
@@ -876,10 +885,30 @@
       font-weight: 500 !important;
     }
   </style>
+  <link rel="stylesheet" href="/assets/ujoy.css?v=3" />
 </head>
 <body>
   <!-- 身份验证加载遮罩 -->
   <div id="authOverlay" class="ss-auth-overlay">
+    <section class="uj-auth-stage" aria-hidden="true">
+      <video class="uj-auth-video" autoplay muted loop playsinline>
+        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_081238_406ed0e3-5d83-436e-a512-0bbff7ec5b95.mp4" type="video/mp4" />
+      </video>
+      <div class="uj-wordmark"><span class="uj-wordmark-mark">ID</span><span>Identity Service</span></div>
+      <div class="uj-stage-copy">
+        <span class="uj-serial">IDENTITY · SELF SERVICE</span>
+        <h1>企业身份管理</h1>
+        <p>安全、便捷地管理你的个人 AD 账号。</p>
+      </div>
+      <div class="uj-verify-track">
+        <span class="uj-track-line"></span>
+        <div class="uj-track-step is-active"><b>01</b><span>验证身份</span><small>Feishu OAuth</small></div>
+        <div class="uj-track-step"><b>02</b><span>定位账号</span><small>Active Directory</small></div>
+        <div class="uj-track-step"><b>03</b><span>恢复访问</span><small>Secure action</small></div>
+      </div>
+      <div class="uj-stage-foot"><span>IDENTITY · SELF SERVICE</span><span>SECURE ACCESS</span></div>
+    </section>
+    <div class="uj-auth-panel">
     <!-- 加载态（验证中） -->
     <div id="authLoading" class="ss-auth-loading">
       <div class="ss-spinner"></div>
@@ -890,9 +919,16 @@
       <div class="ss-login-logo">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3370FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
       </div>
-      <h2 class="ss-login-title">域账户自助服务</h2>
-      <p class="ss-login-desc">通过飞书账号安全登录，管理您的域账户</p>
+      <div class="uj-card-brand"><span class="uj-card-brand-mark">ID</span>Identity Service</div>
+      <span class="uj-card-kicker">EMPLOYEE SELF SERVICE</span>
+      <h2 class="ss-login-title">身份自助服务</h2>
+      <p class="ss-login-desc">使用飞书验证身份，安全管理你的企业账号</p>
+      <button id="feishuLoginBtn" class="ss-auth-login-btn" onclick="window.location.href='/api/auth/feishu/login'">
+        <svg width="22" height="22" viewBox="0 0 48 48" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M10 8c0 1 7 3.5 14.745 16.744 0 0 4.184-4.363 6.255-5.744 1.5-1 2.712-1.332 2.712-1.332C33.712 15.156 29.5 8 28 8z" fill="#3370FF"/><path d="M43.5 18.5c-1-.667-3.65-1.771-6.5-1.5a15 15 0 0 0-3.288.668S32.5 18 31 19c-2.07 1.38-6.255 5.744-6.255 5.744-1.428 1.397-3.05 2.732-5.245 3.756 0 0 7 3 11.5 3 5.063 0 7-3.5 7-3.5 1.5-3.305 3.5-7 5.5-9.5" fill="#00D6B9"/><path d="M4 17.5v17c0 1 6 5.5 15 5.5 10 0 17.05-7.705 19-12 0 0-1.937 3.5-7 3.5-4.5 0-11.5-3-11.5-3-5.117-2.239-10.03-6.577-12.906-9.117C4.974 17.953 4 17.093 4 17.5" fill="#34C3FF"/></svg>
+        使用飞书验证身份
+      </button>
       <div class="ss-login-features">
+        <span class="ss-login-features-label">登录后可使用</span>
         <div class="ss-login-feature">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span>查询域账户状态与个人信息</span>
@@ -906,14 +942,11 @@
           <span>自助重置域账户密码</span>
         </div>
       </div>
-      <button id="feishuLoginBtn" class="ss-auth-login-btn" onclick="window.location.href='/api/auth/feishu/login'">
-        <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 8c0 1 7 3.5 14.745 16.744 0 0 4.184-4.363 6.255-5.744 1.5-1 2.712-1.332 2.712-1.332C33.712 15.156 29.5 8 28 8z" fill="#fff" opacity="0.9"/><path d="M43.5 18.5c-1-.667-3.65-1.771-6.5-1.5a15 15 0 0 0-3.288.668S32.5 18 31 19c-2.07 1.38-6.255 5.744-6.255 5.744-1.428 1.397-3.05 2.732-5.245 3.756 0 0 7 3 11.5 3 5.063 0 7-3.5 7-3.5 1.5-3.305 3.5-7 5.5-9.5" fill="#fff" opacity="0.7"/><path d="M4 17.5v17c0 1 6 5.5 15 5.5 10 0 17.05-7.705 19-12 0 0-1.937 3.5-7 3.5-4.5 0-11.5-3-11.5-3-5.117-2.239-10.03-6.577-12.906-9.117C4.974 17.953 4 17.093 4 17.5" fill="#fff"/></svg>
-        飞书登录
-      </button>
       <div class="ss-login-footer">
-        登录即表示同意使用域账户自助服务<br>
-        遇到问题？请<a href="/admin">联系管理员</a>
+        身份验证由企业身份系统安全处理<br>
+        需要帮助？请联系企业 IT 服务台
       </div>
+    </div>
     </div>
   </div>
 
@@ -923,8 +956,8 @@
       <!-- 导航 -->
       <nav class="ss-nav" role="navigation" aria-label="自助服务导航">
         <div class="ss-brand">
-          <div class="ss-brand-icon">AD</div>
-          自助服务
+          <div class="ss-brand-icon">ID</div>
+          <span><strong>身份服务</strong><small>身份自助服务</small></span>
         </div>
         <div class="ss-nav-right">
           <span id="userWelcome" class="ss-user-welcome" style="display:none"></span>
@@ -941,8 +974,9 @@
 
       <!-- 欢迎区域 -->
       <section class="ss-welcome">
-        <h1>域账户自助服务</h1>
-        <p>搜索您的域账户信息，自助解锁账号或重置密码，无需联系管理员</p>
+        <span class="uj-section-label">IDENTITY / SELF SERVICE</span>
+        <h1>找回你的企业账号访问权</h1>
+        <p>搜索账号、确认状态，然后完成自助解锁或密码重置。</p>
       </section>
 
       <!-- 功能引导条 -->
@@ -1043,6 +1077,7 @@
 
   <div id="toastWrap" class="ss-toast-wrap" role="alert" aria-live="polite"></div>
 
-  <script src="/assets/app.js?v=13"></script>
+  <script src="/assets/ujoy-motion.js?v=3"></script>
+  <script src="/assets/app.js?v=14"></script>
 </body>
 </html>

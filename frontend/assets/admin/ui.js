@@ -149,7 +149,7 @@ function applyTheme(t) {
 }
 
 function initTheme() {
-  const saved = localStorage.getItem('ad_theme') || (_sysDark ? 'dark' : 'light');
+  const saved = localStorage.getItem('ad_theme') || 'light';
   applyTheme(saved);
 }
 
