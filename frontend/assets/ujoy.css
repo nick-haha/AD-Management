@@ -420,3 +420,61 @@ body.admin-transition-active::before{opacity:1}
 .ss-search-btn{right:8px!important;width:44px!important;height:44px!important;border-radius:11px!important;background:linear-gradient(145deg,#356fa9,#225687)!important;box-shadow:0 7px 16px rgba(39,87,139,.22)!important}.ss-search-hint{margin-top:12px!important;color:#657998!important}
 .ss-results{gap:14px!important}.ss-card{background:rgba(255,255,255,.72)!important;border-color:rgba(255,255,255,.85)!important;box-shadow:0 12px 32px rgba(68,98,142,.08)!important;backdrop-filter:blur(16px) saturate(130%)}.ss-card:hover{border-color:rgba(165,192,225,.9)!important;box-shadow:0 18px 38px rgba(68,98,142,.12)!important}
 @media(max-width:760px){.ss-wrap{width:min(100% - 28px,1240px)!important;padding:16px 0 40px!important;grid-template-columns:1fr!important;gap:18px!important}.ss-welcome{padding:26px 0 8px!important}.ss-welcome h1{max-width:11ch!important;font-size:42px!important}.ss-guide-bar{min-height:auto!important;grid-row:auto}.ss-hero{margin-top:0!important;padding:22px 18px 18px!important}.ss-hero::after{display:none!important}.ss-search-input{min-height:56px!important}.ss-nav{margin-bottom:0!important}}
+
+/* Responsive baseline: reflow every operation before the viewport can overflow. */
+html,body{max-width:100%;overflow-x:hidden}
+*,*::before,*::after{box-sizing:border-box}
+@media (max-width:760px){
+  body{min-width:320px}
+  .login-page,.ss-auth-overlay{min-height:100dvh!important;overflow-y:auto!important}
+  .uj-auth-stage{min-height:100dvh!important}
+  .uj-auth-panel{min-height:auto!important;padding:max(20px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom))!important}
+  .ss-login-card,.login-card{width:100%!important;max-width:440px!important}
+  .ss-nav{align-items:flex-start!important;gap:12px!important}
+  .ss-nav-right{margin-left:auto!important;flex-wrap:wrap!important;justify-content:flex-end!important}
+  .ss-user-welcome{display:none!important}
+  .ss-welcome h1{font-size:clamp(34px,11vw,42px)!important}
+  .ss-guide-item{min-height:56px!important}
+  .ss-card,.ss-card-main,.ss-card-actions{min-width:0!important}
+  .ss-card{align-items:flex-start!important;gap:12px!important}
+  .ss-card-actions{width:100%!important;display:flex!important;flex-wrap:wrap!important}
+  .ss-card-actions .btn{flex:1 1 132px!important;min-height:44px!important}
+
+  body[data-page="admin"] .admin-top{min-height:auto!important;align-items:flex-start!important;gap:10px!important}
+  body[data-page="admin"] .admin-top-right{margin-left:auto!important;justify-content:flex-end!important}
+  body[data-page="admin"] .tab-panel{width:100%!important;min-width:0!important;padding:14px 12px calc(32px + env(safe-area-inset-bottom))!important}
+  body[data-page="admin"] .identity-directory-pane{min-height:0!important}
+  body[data-page="admin"] .identity-row{min-height:68px!important;gap:8px!important}
+  body[data-page="admin"] .identity-row-main strong{font-size:14px!important}
+  body[data-page="admin"] :is(.operation-shell,.settings-layout,.offboard-canvas){width:100%!important;min-width:0!important;grid-template-columns:1fr!important}
+  body[data-page="admin"] :is(.operation-index,.settings-index){max-width:100%;scrollbar-width:none!important}
+  body[data-page="admin"] :is(.operation-index,.settings-index)::-webkit-scrollbar{display:none}
+  body[data-page="admin"] .admin-card-body.has-padding,body[data-page="admin"] .offboard-surface{padding:16px!important}
+  body[data-page="admin"] :is(.form-grid-2,.tool-grid,.audit-filter-panel .audit-filters,.audit-stats-row,.detail-grid){grid-template-columns:1fr!important}
+  body[data-page="admin"] :is(.form-input,.form-select,textarea){min-width:0!important;width:100%!important;font-size:16px!important}
+  body[data-page="admin"] :is(.operation-action-bar,.offboard-action-row,.detail-actions){align-items:stretch!important;flex-direction:column!important}
+  body[data-page="admin"] :is(.operation-action-bar,.offboard-action-row,.detail-actions) .btn{width:100%!important;min-width:0!important;min-height:44px!important}
+  body[data-page="admin"] :is(#overview #adminResult,.audit-table-shell,.table-responsive){max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  body[data-page="admin"] .user-table,body[data-page="admin"] .log-table{min-width:620px!important}
+  body[data-page="admin"] .modal{padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))!important}
+  body[data-page="admin"] .modal-content:not(.detail-modal){width:100%!important;max-width:none!important;max-height:calc(100dvh - 16px)!important;border-radius:14px!important}
+  body[data-page="admin"] #userDetailModal .detail-body{height:auto!important;min-height:0!important;flex:1 1 auto!important}
+  body[data-page="admin"] #userDetailModal .detail-actions{max-height:none!important;overflow:visible!important}
+}
+@media (max-width:390px){
+  .ss-wrap{width:calc(100% - 24px)!important}
+  .ss-nav{min-height:48px!important}
+  .ss-brand small{display:none!important}
+  .ss-logout-btn{padding:8px!important}
+  .ss-hero{padding:18px 14px!important}
+  .ss-search-input{min-height:52px!important;padding:14px 52px 14px 42px!important}
+  .ss-search-btn{right:6px!important;width:40px!important;height:40px!important}
+  body[data-page="admin"] .admin-top{padding:12px!important}
+  body[data-page="admin"] .uj-admin-heading p{display:none!important}
+  body[data-page="admin"] .sidebar{width:calc(100% - 16px)!important;margin:0 8px!important}
+  body[data-page="admin"] .sidebar-item,body[data-page="admin"] .sidebar.collapsed .sidebar-item{min-width:56px!important;flex-basis:56px!important}
+  body[data-page="admin"] .tab-panel{padding-left:10px!important;padding-right:10px!important}
+}
+@media (pointer:coarse){
+  :is(.btn,.sidebar-item,.ss-nav-link,.ss-guide-item,.identity-row){min-height:44px}
+}
